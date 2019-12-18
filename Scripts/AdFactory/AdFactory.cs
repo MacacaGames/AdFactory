@@ -33,7 +33,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     /// <summary>
     /// 初始化 AdFactory 並指定實做的廣告供應者
     /// </summary>
-    public void InitFactory(
+    public void Init(
         AdProvider provider,
         string AppId = "",
         string RewaredPlacement = "",
@@ -46,24 +46,42 @@ public class AdFactory : UnitySingleton<AdFactory>
             return;
         }
         Debug.LogWarning("Init AdFactory with " + provider);
+        IAdManager _adManager = null;
         switch (provider)
         {
             case AdProvider.AdMob:
 #if AdFactory_Admob
-                adManager = new AdMobManager(AppId, RewaredPlacement, IterstitialPlacement, BannerPlacement);
+                _adManager = new AdMobManager(AppId, RewaredPlacement, IterstitialPlacement, BannerPlacement);
 #endif
                 break;
             case AdProvider.UnityAd:
 #if AdFactory_Unity
-                adManager = new UnityAdManager(AppId, RewaredPlacement, IterstitialPlacement);
+                _adManager = new UnityAdManager(AppId, RewaredPlacement, IterstitialPlacement);
 #endif
                 break;
         }
+        Init(_adManager);
+    }
+    public void Init(IAdManager provider)
+    {
+        if (CheckInit())
+        {
+            Debug.LogError("AdFactory is Inited Return");
+            return;
+        }
 
+        if (provider == null)
+        {
+            Debug.LogError("AdFactory provider is null, Return");
+            return;
+        }
+
+        Debug.LogWarning("Init AdFactory with " + provider);
+
+        adManager = provider;
         adManager.Init();
         adManager.PreLoadRewardedAd();
     }
-
     /// <summary>
     /// 請求並顯示橫幅廣告
     /// </summary>
@@ -115,7 +133,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         {
             Debug.LogError("AdFactory is not Init");
             return false;
-            
+
         }
         return adManager.RemoveBannerView();
     }
