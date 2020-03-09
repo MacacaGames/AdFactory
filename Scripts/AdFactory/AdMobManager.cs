@@ -45,7 +45,8 @@ public class AdMobManager : IAdManager
     public int GetBannerHeight()
     {
 #if UNITY_IOS
-        if(UnityEngine.iOS.Device.generation == UnityEngine.iOS.DeviceGeneration.iPhoneX ){
+        if (UnityEngine.iOS.Device.generation == UnityEngine.iOS.DeviceGeneration.iPhoneX)
+        {
             return 50 * Mathf.RoundToInt(Screen.dpi / 160);
         }
 #endif
@@ -211,7 +212,6 @@ public class AdMobManager : IAdManager
     public RewardedAd CreateAndLoadRewardedAd(string placement)
     {
         var rewardedAd = new RewardedAd(placement);
-
         // Called when an ad request has successfully loaded.
         rewardedAd.OnAdLoaded += OnAdLoaded;
         // Called when an ad request failed to load.
@@ -336,8 +336,17 @@ public class AdMobManager : IAdManager
             result = AdFactory.RewardResult.Declined;
         }
 
-    FINISH:
+        //Unbind Event
+        rewardedAd.OnAdLoaded -= OnAdLoaded;
+        rewardedAd.OnAdFailedToLoad -= OnAdFailedToLoad;
+        rewardedAd.OnAdOpening -= OnAdOpening;
+        rewardedAd.OnAdFailedToShow -= OnAdFailedToShow;
+        rewardedAd.OnUserEarnedReward -= OnUserEarnedReward;
+        rewardedAd.OnAdClosed -= OnAdClosed;
         CreateAndLoadRewardedAd(placement);
+
+    FINISH:
+
         OnFinish?.Invoke(result);
     }
 
@@ -348,9 +357,6 @@ public class AdMobManager : IAdManager
             CreateAndLoadRewardedAd(item);
         }
     }
-
-
-
 
     //     public static RewardBasedVideoAd rewardBasedVideo { get { return RewardBasedVideoAd.Instance; } }
     //     public static AdFactory.AdsLoadState loadState_rewardedAds;
