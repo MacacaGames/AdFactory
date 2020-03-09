@@ -8,13 +8,15 @@ using UnityEngine.Advertisements;
 public class UnityAdManager : IAdManager
 {
     static string _gameId = "";
-    static string _rewaredPlacement;
-    static string _iterstitialPlacement;
-    public UnityAdManager(string GameId, string RewarePlacement, string IterstitialPlacement)
+    static string _defaultRewaredPlacement;
+    static string _defaultIterstitialPlacement;
+    static string _defaultBannerPlacement;
+    public UnityAdManager(string GameId, string DefaultRewaredPlacement, string DefaultIterstitialPlacement, string DefaultBannerPlacement)
     {
         _gameId = GameId;
-        _rewaredPlacement = RewarePlacement;
-        _iterstitialPlacement = IterstitialPlacement;
+        _defaultRewaredPlacement = DefaultRewaredPlacement;
+        _defaultIterstitialPlacement = DefaultIterstitialPlacement;
+        _defaultBannerPlacement = DefaultBannerPlacement;
     }
     public void Init()
     {
@@ -29,16 +31,29 @@ public class UnityAdManager : IAdManager
     /// Add two number
     /// </summary>
     /// <returns>true 代表請求成功, false 代表請求失敗或是 VIP 用戶或是還沒玩超過三次</returns>
-    public bool ShowBannerAd()
+    public bool ShowBannerAd(string placement)
     {
-        return false;
+        string id = "";
+        if (string.IsNullOrEmpty(placement))
+        {
+            id = _defaultBannerPlacement;
+        }
+        else
+        {
+            id = placement;
+        }
+
+        Advertisement.Banner.Show(id);
+        return Advertisement.IsReady(id);
     }
     public bool HasBannerView()
     {
+       
         return false;
     }
     public bool RemoveBannerView()
     {
+        Advertisement.Banner.Hide();
         return false;
     }
     public int GetBannerHeight()
@@ -48,9 +63,18 @@ public class UnityAdManager : IAdManager
 
     AdFactory.RewardResult resultInterstitialAd = AdFactory.RewardResult.Faild;
     bool waitInterstitialAdFinish = false;
-    public IEnumerator ShowInterstitialAds(Action<AdFactory.RewardResult> action)
+    public IEnumerator ShowInterstitialAds(string placement, Action<AdFactory.RewardResult> OnFinish)
     {
-        string id = _iterstitialPlacement;
+        string id = "";
+        if (string.IsNullOrEmpty(placement))
+        {
+            id = _defaultIterstitialPlacement;
+        }
+        else
+        {
+            id = placement;
+        }
+
         waitInterstitialAdFinish = false;
         if (Advertisement.IsReady(id))
         {
@@ -65,7 +89,7 @@ public class UnityAdManager : IAdManager
         }
 
         yield return new WaitUntil(() => waitInterstitialAdFinish == true);
-        action(resultInterstitialAd);
+        OnFinish(resultInterstitialAd);
     }
     private void HandleShownterstitialResult(ShowResult result)
     {
@@ -97,9 +121,17 @@ public class UnityAdManager : IAdManager
     /// 顯示一則獎勵廣告
     /// </summary>
     /// <returns>一個代表廣告顯示進程的 Coroutine</returns>
-    public IEnumerator ShowRewardedAds(Action<AdFactory.RewardResult> callback)
+    public IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> OnFinish)
     {
-        string id = _rewaredPlacement;
+        string id = "";
+        if (string.IsNullOrEmpty(placement))
+        {
+            id = _defaultRewaredPlacement;
+        }
+        else
+        {
+            id = placement;
+        }
         waitRewardedAdFinish = false;
         if (Advertisement.IsReady(id))
         {
@@ -114,9 +146,10 @@ public class UnityAdManager : IAdManager
         }
 
         yield return new WaitUntil(() => waitRewardedAdFinish == true);
-        callback(resultRewardAd);
+        OnFinish(resultRewardAd);
     }
-    public void PreLoadRewardedAd(){
+    public void PreLoadRewardedAd(string[] placements)
+    {
         //nothinh in Unity Ads
     }
     void HandleShowRewardResult(ShowResult result)
