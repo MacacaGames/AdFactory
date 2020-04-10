@@ -207,8 +207,31 @@ public class AdMobManager : IAdManager
     #region RewardedAd
 
     static Dictionary<string, RewardedAd> rewardAdDict = new Dictionary<string, RewardedAd>();
-    //static Dictionary<string, AdFactory.RewardResult> rewardResult = new Dictionary<string, AdFactory.RewardResult>();
-    //static Dictionary<string, AdFactory.AdsLoadState> rewardLoadState = new Dictionary<string, AdFactory.AdsLoadState>();
+    public bool IsRewardViedoAvaliable(string placement, System.Action OnAdLoaded)
+    {
+        if (string.IsNullOrEmpty(placement))
+        {
+            placement = _defaultRewaredPlacement;
+        }
+        RewardedAd rewardedAd = null;
+        if (!rewardAdDict.TryGetValue(placement, out rewardedAd))
+        {
+            rewardedAd = CreateAndLoadRewardedAd(placement);
+        }
+
+        rewardedAd.OnAdLoaded -= (object sender, EventArgs e) =>
+        {
+            OnAdLoaded?.Invoke();
+        };
+        
+        rewardedAd.OnAdLoaded += (object sender, EventArgs e) =>
+        {
+            OnAdLoaded?.Invoke();
+        };
+
+        return rewardedAd.IsLoaded();
+    }
+
     public RewardedAd CreateAndLoadRewardedAd(string placement)
     {
         var rewardedAd = new RewardedAd(placement);
@@ -362,144 +385,7 @@ public class AdMobManager : IAdManager
         }
     }
 
-    //     public static RewardBasedVideoAd rewardBasedVideo { get { return RewardBasedVideoAd.Instance; } }
-    //     public static AdFactory.AdsLoadState loadState_rewardedAds;
-    //     bool isRewardAdClose = false;
-
-    //     public IEnumerator ShowRewardedAds(string placement , Action<AdFactory.RewardResult> callback)
-    //     {
-    //         string id = _defaultRewaredPlacement;
-    //         //初始化
-    //         isRewardAdClose = false;
-    //         int try_preload_times = 0;
-
-    //         AdFactory.RewardResult result = AdFactory.RewardResult.Error;
-
-    //         //等一秒，騙使用者很忙
-    //         yield return new WaitForSecondsRealtime(1f);
-
-    //         //編輯器的情況
-    // #if UNITY_EDITOR
-    //         result = AdFactory.RewardResult.Success;
-    //         goto FINISH;
-    // #else
-
-    //         //沒有讀到的情況
-    //         if (loadState_rewardedAds != AdFactory.AdsLoadState.Loaded) {
-    //             while (try_preload_times < 3) {
-    //                 RequestRewardedAds (id);
-
-    //                 float wait = 0;
-    //                 while (wait < 3) {
-    //                     wait += Time.deltaTime;
-    //                     if (loadState_rewardedAds == AdFactory.AdsLoadState.Loaded) {
-    //                         goto SHOW;
-    //                     }
-    //                     yield return null;
-    //                 }
-    //                 try_preload_times++;
-    //                 Debug.Log ("Try load times : " + try_preload_times);
-    //             }
-    //             result = AdFactory.RewardResult.Faild;
-    //             goto FINISH;
-    //         }
-    // #endif
-    //     SHOW:
-    //         _ShowRewardedAds();
-
-    //         while (!isRewardAdClose)
-    //         {
-    //             yield return null;
-    //         }
-
-    //         switch (loadState_rewardedAds)
-    //         {
-    //             case AdFactory.AdsLoadState.Rewarded:
-    //                 result = AdFactory.RewardResult.Success;
-    //                 break;
-    //             case AdFactory.AdsLoadState.Declined:
-    //                 result = AdFactory.RewardResult.Declined;
-    //                 break;
-    //             case AdFactory.AdsLoadState.Failed:
-    //                 result = AdFactory.RewardResult.Faild;
-    //                 break;
-    //             default:
-    //                 result = AdFactory.RewardResult.Error;
-    //                 break;
-    //         }
-
-    //     FINISH:
-    //         RequestRewardedAds(id);
-
-
-    //         callback(result);
-    //     }
-
-    //     void _ShowRewardedAds()
-    //     {
-    //         if (rewardBasedVideo.IsLoaded())
-    //         {
-    //             rewardBasedVideo.Show();
-    //         }
-    //         else
-    //         {
-    //             Debug.Log("Cannot show rewaredAds, Handler is loaded, but somehow IsLoaded is still not loaded.");
-    //             isRewardAdClose = true;
-    //         }
-    //     }
-
-    //     public void PreLoadRewardedAd()
-    //     {
-    //         RequestRewardedAds(_defaultRewaredPlacement);
-    //     }
-
-    //     void RequestRewardedAds(string id)
-    //     {
-    //         AdRequest request = new AdRequest.Builder().Build();
-    //         rewardBasedVideo.LoadAd(request, id);
-    //     }
-
-
-    //     void RegistRewardedAdEvent()
-    //     {
-    //         // Ad event fired when the rewarded video ad
-    //         rewardBasedVideo.OnAdLoaded += HandleRewardBasedVideoLoaded;
-    //         rewardBasedVideo.OnAdFailedToLoad += HandleRewardBasedVideoFailedToLoad;
-    //         rewardBasedVideo.OnAdRewarded += HandleRewardBasedVideoRewarded;
-    //         rewardBasedVideo.OnAdClosed += HandleRewardBasedVideoClosed;
-    //     }
-
-    //     void UnRegistRewardedAdEvent()
-    //     {
-    //         rewardBasedVideo.OnAdLoaded -= HandleRewardBasedVideoLoaded;
-    //         rewardBasedVideo.OnAdFailedToLoad -= HandleRewardBasedVideoFailedToLoad;
-    //         rewardBasedVideo.OnAdRewarded -= HandleRewardBasedVideoRewarded;
-    //         rewardBasedVideo.OnAdClosed -= HandleRewardBasedVideoClosed;
-    //     }
-    //     void HandleRewardBasedVideoLoaded(object sender, EventArgs args)
-    //     {
-    //         loadState_rewardedAds = AdFactory.AdsLoadState.Loaded;
-    //         Debug.Log("HandleRewardBasedVideoLoaded");
-    //     }
-
-    //     void HandleRewardBasedVideoFailedToLoad(object sender, AdFailedToLoadEventArgs args)
-    //     {
-    //         loadState_rewardedAds = AdFactory.AdsLoadState.Failed;
-    //         Debug.Log("HandleRewardBasedVideoFailedToLoad" + args.Message);
-    //     }
-
-    //     void HandleRewardBasedVideoRewarded(object sender, Reward reward)
-    //     {
-    //         loadState_rewardedAds = AdFactory.AdsLoadState.Rewarded;
-    //     }
-
-    //     void HandleRewardBasedVideoClosed(object sender, EventArgs args)
-    //     {
-    //         isRewardAdClose = true;
-    //     }
     #endregion
-
-
 }
 
 #endif

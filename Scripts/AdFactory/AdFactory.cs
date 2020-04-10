@@ -209,6 +209,11 @@ public class AdFactory : UnitySingleton<AdFactory>
         if (OnAfterAdShow != null) OnAfterAdShow();
     }
 
+    public bool IsRewardViedoAvaliable(string placement = "", System.Action OnAdLoaded = null)
+    {
+        return adManager.IsRewardViedoAvaliable(placement, OnAdLoaded);
+    }
+
     Coroutine WaitforSecondsAbolute(float time)
     {
         return StartCoroutine(WaitForSecondsAbsoluteTask(time));
@@ -294,5 +299,6 @@ public interface IAdManager
     IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> OnFinish);
 
     void PreLoadRewardedAd(string[] placements);
+    bool IsRewardViedoAvaliable(string placement, System.Action OnAdLoaded));
 }
 

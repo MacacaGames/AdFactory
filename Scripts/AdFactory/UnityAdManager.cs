@@ -48,7 +48,7 @@ public class UnityAdManager : IAdManager
     }
     public bool HasBannerView()
     {
-       
+
         return false;
     }
     public bool RemoveBannerView()
@@ -174,6 +174,15 @@ public class UnityAdManager : IAdManager
                 resultRewardAd = AdFactory.RewardResult.Faild;
                 break;
         }
+    }
+
+    public bool IsRewardViedoAvaliable(string placement, Action OnAdLoaded)
+    {
+        if (string.IsNullOrEmpty(placement))
+        {
+            placement = _defaultRewaredPlacement;
+        }
+        return Advertisement.IsReady(placement);
     }
 }
 
