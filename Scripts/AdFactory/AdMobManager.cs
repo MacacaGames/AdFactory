@@ -292,7 +292,7 @@ public class AdMobManager : IAdManager
             rewardedAd = CreateAndLoadRewardedAd(placement);
         }
 
-        yield return new WaitForSecondsRealtime(0.5f);
+        yield return new WaitForSecondsRealtime(0.2f);
 
         //沒有讀到的情況
         if (!rewardedAd.IsLoaded())
@@ -300,7 +300,7 @@ public class AdMobManager : IAdManager
             while (try_preload_times < 3)
             {
                 float wait = 0;
-                while (wait < 2)
+                while (wait < 1.5f)
                 {
                     wait += Time.deltaTime;
                     if (rewardedAd.IsLoaded())
@@ -320,6 +320,11 @@ public class AdMobManager : IAdManager
         if (rewardedAd.IsLoaded())
         {
             rewardedAd.Show();
+        }
+        else
+        {
+            result = AdFactory.RewardResult.Faild;
+            goto FINISH;
         }
 
         while (isRewardAdClose == false)
@@ -346,7 +351,6 @@ public class AdMobManager : IAdManager
         CreateAndLoadRewardedAd(placement);
 
     FINISH:
-
         OnFinish?.Invoke(result);
     }
 
