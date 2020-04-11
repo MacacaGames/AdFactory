@@ -92,12 +92,6 @@ public class AdMobManager : IAdManager
         //等一秒，騙使用者很忙
         yield return new WaitForSecondsRealtime(1f);
 
-        //編輯器的情況
-#if UNITY_EDITOR
-        result = AdFactory.RewardResult.Success;
-        goto FINISH;
-#endif
-
         //沒有讀到的情況
         if (loadState_interstitialAds != AdFactory.AdsLoadState.Loaded)
         {
@@ -207,7 +201,7 @@ public class AdMobManager : IAdManager
     #region RewardedAd
 
     static Dictionary<string, RewardedAd> rewardAdDict = new Dictionary<string, RewardedAd>();
-    public bool IsRewardViedoAvaliable(string placement, System.Action OnAdLoaded)
+    public bool IsRewardViedoAvaliable(string placement, System.Action<bool> OnAdLoaded)
     {
         if (string.IsNullOrEmpty(placement))
         {
@@ -221,12 +215,22 @@ public class AdMobManager : IAdManager
 
         rewardedAd.OnAdLoaded -= (object sender, EventArgs e) =>
         {
-            OnAdLoaded?.Invoke();
+            OnAdLoaded?.Invoke(true);
         };
-        
+
         rewardedAd.OnAdLoaded += (object sender, EventArgs e) =>
         {
-            OnAdLoaded?.Invoke();
+            OnAdLoaded?.Invoke(true);
+        };
+
+        rewardedAd.OnAdFailedToLoad -= (object sender, AdErrorEventArgs e) =>
+        {
+            OnAdLoaded?.Invoke(false);
+        };
+
+        rewardedAd.OnAdFailedToLoad += (object sender, AdErrorEventArgs e) =>
+        {
+            OnAdLoaded?.Invoke(false);
         };
 
         return rewardedAd.IsLoaded();

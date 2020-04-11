@@ -5,12 +5,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Advertisements;
 
-public class UnityAdManager : IAdManager
+public class UnityAdManager : IAdManager, IUnityAdsListener
 {
     static string _gameId = "";
     static string _defaultRewaredPlacement;
     static string _defaultIterstitialPlacement;
     static string _defaultBannerPlacement;
+    List<string> rewardPlacement = new List<string>();
+    List<string> iterstitialPlacament = new List<string>();
     public UnityAdManager(string GameId, string DefaultRewaredPlacement, string DefaultIterstitialPlacement, string DefaultBannerPlacement)
     {
         _gameId = GameId;
@@ -21,10 +23,7 @@ public class UnityAdManager : IAdManager
     public void Init()
     {
         Advertisement.Initialize(_gameId);
-    }
-    public void Destroy()
-    {
-
+        Advertisement.AddListener(this);
     }
 
     /// <summary>
@@ -72,15 +71,17 @@ public class UnityAdManager : IAdManager
         }
         else
         {
+            if (!rewardPlacement.Contains(placement))
+            {
+                rewardPlacement.Add(placement);
+            }
             id = placement;
         }
 
         waitInterstitialAdFinish = false;
         if (Advertisement.IsReady(id))
         {
-            ShowOptions so = new ShowOptions();
-            so.resultCallback = HandleShownterstitialResult;
-            Advertisement.Show(id, so);
+            Advertisement.Show(id);
         }
         else
         {
@@ -91,29 +92,7 @@ public class UnityAdManager : IAdManager
         yield return new WaitUntil(() => waitInterstitialAdFinish == true);
         OnFinish(resultInterstitialAd);
     }
-    private void HandleShownterstitialResult(ShowResult result)
-    {
-        Debug.Log("HandleShowResult" + result);
-        waitInterstitialAdFinish = true;
-        switch (result)
-        {
-            case ShowResult.Finished:
-                Debug.Log("The ad was successfully shown.");
-                resultInterstitialAd = AdFactory.RewardResult.Success;
-                //
-                // YOUR CODE TO REWARD THE GAMER
-                // Give coins etc.
-                break;
-            case ShowResult.Skipped:
-                Debug.Log("The ad was skipped before reaching the end.");
-                resultInterstitialAd = AdFactory.RewardResult.Declined;
-                break;
-            case ShowResult.Failed:
-                Debug.LogError("The ad failed to be shown.");
-                resultInterstitialAd = AdFactory.RewardResult.Faild;
-                break;
-        }
-    }
+
 
     bool waitRewardedAdFinish = false;
     AdFactory.RewardResult resultRewardAd = AdFactory.RewardResult.Faild;
@@ -130,14 +109,16 @@ public class UnityAdManager : IAdManager
         }
         else
         {
+            if (!iterstitialPlacament.Contains(placement))
+            {
+                iterstitialPlacament.Add(placement);
+            }
             id = placement;
         }
         waitRewardedAdFinish = false;
         if (Advertisement.IsReady(id))
         {
-            ShowOptions so = new ShowOptions();
-            so.resultCallback = HandleShowRewardResult;
-            Advertisement.Show(id, so);
+            Advertisement.Show(id);
         }
         else
         {
@@ -152,18 +133,46 @@ public class UnityAdManager : IAdManager
     {
         //nothinh in Unity Ads
     }
-    void HandleShowRewardResult(ShowResult result)
+
+    public bool IsRewardViedoAvaliable(string placement, System.Action<bool> OnAdLoaded)
     {
-        Debug.Log("HandleShowResult" + result);
-        waitRewardedAdFinish = true;
-        switch (result)
+        if (string.IsNullOrEmpty(placement))
+        {
+            placement = _defaultRewaredPlacement;
+        }
+        return Advertisement.IsReady(placement);
+    }
+
+    public void OnUnityAdsReady(string placementId)
+    {
+
+    }
+
+    public void OnUnityAdsDidError(string message)
+    {
+
+    }
+
+    public void OnUnityAdsDidStart(string placementId)
+    {
+
+    }
+
+    public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
+    {
+        if (placementId == _defaultRewaredPlacement || rewardPlacement.Contains(placementId))
+        {
+            waitRewardedAdFinish = true;
+        }
+        else if (placementId == _defaultRewaredPlacement || iterstitialPlacament.Contains(placementId))
+        {
+            waitInterstitialAdFinish = true;
+        }
+        switch (showResult)
         {
             case ShowResult.Finished:
                 Debug.Log("The ad was successfully shown.");
                 resultRewardAd = AdFactory.RewardResult.Success;
-                //
-                // YOUR CODE TO REWARD THE GAMER
-                // Give coins etc.
                 break;
             case ShowResult.Skipped:
                 Debug.Log("The ad was skipped before reaching the end.");
@@ -176,13 +185,9 @@ public class UnityAdManager : IAdManager
         }
     }
 
-    public bool IsRewardViedoAvaliable(string placement, Action OnAdLoaded)
+    public void Destroy()
     {
-        if (string.IsNullOrEmpty(placement))
-        {
-            placement = _defaultRewaredPlacement;
-        }
-        return Advertisement.IsReady(placement);
+
     }
 }
 

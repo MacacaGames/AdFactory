@@ -9,10 +9,16 @@ using UnityEngine;
 public class AdFactory : UnitySingleton<AdFactory>
 {
     IAdManager adManager;
-
+    [Header("Test Parameters")]
     [SerializeField]
     AdFactory.RewardResult EditorTestResult = AdFactory.RewardResult.Success;
-
+    [Header("IsRewardViedoAvaliable")]
+    [SerializeField]
+    bool IsRewardViedoAvaliableDirectResult = false;
+    [SerializeField]
+    bool IsRewardViedoAvaliableLoadedResult = true;
+    [SerializeField]
+    float IsRewardViedoAvaliableLoadedTime = 2f;
     public delegate void AdViewEventAnalysic(string Data);
     /// <summary>
     /// 註冊一個事件，該事件將會於 廣告顯示「前」執行
@@ -157,7 +163,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         OnBeforeAdShow?.Invoke();
 
 #if UNITY_EDITOR
-        yield return WaitforSecondsAbolute(1f);
+        yield return Yielders.GetWaitForSecondsRealtime(1f);
         OnFinish(EditorTestResult);
 #else
         if (CheckInit())
@@ -166,7 +172,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         }
         else
         {
-            yield return WaitforSecondsAbolute(1.5f);
+            yield return  Yielders.GetWaitForSecondsRealtime(1.5f);
             OnFinish(AdFactory.RewardResult.Faild);
         }
 #endif
@@ -190,9 +196,8 @@ public class AdFactory : UnitySingleton<AdFactory>
         //顯示讀取，如果有的話
         if (OnBeforeAdShow != null) OnBeforeAdShow();
 #if UNITY_EDITOR
-        yield return WaitforSecondsAbolute(1f);
+        yield return Yielders.GetWaitForSecondsRealtime(1f);
         OnFinish(EditorTestResult);
-
 #else
         if (CheckInit())
         {
@@ -200,7 +205,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         }
         else
         {
-            yield return WaitforSecondsAbolute(1.5f);
+            yield return  Yielders.GetWaitForSecondsRealtime(1.5f);
             CloudMacaca.CM_APIController.ShowToastMessage("Rewarded video is not ready please check your network or try again later.");
             OnFinish(AdFactory.RewardResult.Faild);
         }
@@ -209,24 +214,21 @@ public class AdFactory : UnitySingleton<AdFactory>
         if (OnAfterAdShow != null) OnAfterAdShow();
     }
 
-    public bool IsRewardViedoAvaliable(string placement = "", System.Action OnAdLoaded = null)
+    public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null)
     {
+#if UNITY_EDITOR
+        StartCoroutine(EditorIsRewardVideoAvaliabale(OnAdLoaded));
+        return IsRewardViedoAvaliableDirectResult;
+#else
         return adManager.IsRewardViedoAvaliable(placement, OnAdLoaded);
+#endif
+    }
+    IEnumerator EditorIsRewardVideoAvaliabale(System.Action<bool> OnAdLoaded)
+    {
+        yield return Yielders.GetWaitForSecondsRealtime(IsRewardViedoAvaliableLoadedTime);
+        OnAdLoaded?.Invoke(IsRewardViedoAvaliableLoadedResult);
     }
 
-    Coroutine WaitforSecondsAbolute(float time)
-    {
-        return StartCoroutine(WaitForSecondsAbsoluteTask(time));
-    }
-
-    IEnumerator WaitForSecondsAbsoluteTask(float time)
-    {
-        while (time > 0)
-        {
-            time -= Time.deltaTime / Time.timeScale;
-            yield return null;
-        }
-    }
 
     public bool CheckInit()
     {
@@ -299,6 +301,6 @@ public interface IAdManager
     IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> OnFinish);
 
     void PreLoadRewardedAd(string[] placements);
-    bool IsRewardViedoAvaliable(string placement, System.Action OnAdLoaded));
+    bool IsRewardViedoAvaliable(string placement, System.Action<bool> OnAdLoaded);
 }
 
