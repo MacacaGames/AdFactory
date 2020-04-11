@@ -299,6 +299,6 @@ public interface IAdManager
     IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> OnFinish);
 
     void PreLoadRewardedAd(string[] placements);
-    bool IsRewardViedoAvaliable(string placement, System.Action OnAdLoaded));
+    bool IsRewardViedoAvaliable(string placement, System.Action OnAdLoaded);
 }
 
