@@ -24,17 +24,16 @@ public class AdFactory : UnitySingleton<AdFactory>
     /// 註冊一個事件，該事件將會於 廣告顯示「前」執行
     /// </summary>
     public event AdViewEventAnalysic OnAdAnalysic;
-    public delegate void AdViewEvent();
 
     /// <summary>
     /// 註冊一個事件，該事件將會於 廣告顯示「前」執行
     /// </summary>
-    public event AdViewEvent OnBeforeAdShow;
+    public Func<IEnumerator> OnBeforeAdShow;
 
     /// <summary>
     /// 註冊一個事件，該事件將會於 廣告顯示「後」執行
     /// </summary>
-    public event AdViewEvent OnAfterAdShow;
+    public Func<IEnumerator> OnAfterAdShow;
 
     /// <summary>
     /// 初始化 AdFactory 並指定實做的廣告供應者
@@ -160,7 +159,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     IEnumerator ShowInterstitialAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement)
     {
         //顯示讀取，如果有的話
-        OnBeforeAdShow?.Invoke();
+        yield return OnBeforeAdShow?.Invoke();
 
 #if UNITY_EDITOR
         yield return Yielders.GetWaitForSecondsRealtime(1f);
@@ -178,7 +177,7 @@ public class AdFactory : UnitySingleton<AdFactory>
 #endif
 
         //關閉讀取，如果有的話
-        OnAfterAdShow?.Invoke();
+        yield return OnAfterAdShow?.Invoke();
     }
 
     /// <summary>
@@ -194,7 +193,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     IEnumerator ShowRewardedAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement)
     {
         //顯示讀取，如果有的話
-        if (OnBeforeAdShow != null) OnBeforeAdShow();
+        yield return OnBeforeAdShow?.Invoke();
 #if UNITY_EDITOR
         yield return Yielders.GetWaitForSecondsRealtime(1f);
         OnFinish(EditorTestResult);
@@ -211,7 +210,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         }
 #endif
         //關閉讀取，如果有的話
-        if (OnAfterAdShow != null) OnAfterAdShow();
+        yield return OnAfterAdShow?.Invoke();
     }
 
     public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null)
