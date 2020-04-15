@@ -28,12 +28,12 @@ public class AdFactory : UnitySingleton<AdFactory>
     /// <summary>
     /// 註冊一個事件，該事件將會於 廣告顯示「前」執行
     /// </summary>
-    public Func<IEnumerator> OnBeforeAdShow;
+    public Func<CustomYieldInstruction> OnBeforeAdShow;
 
     /// <summary>
     /// 註冊一個事件，該事件將會於 廣告顯示「後」執行
     /// </summary>
-    public Func<IEnumerator> OnAfterAdShow;
+    public Func<CustomYieldInstruction> OnAfterAdShow;
 
     /// <summary>
     /// 初始化 AdFactory 並指定實做的廣告供應者
