@@ -159,7 +159,8 @@ public class AdFactory : UnitySingleton<AdFactory>
     IEnumerator ShowInterstitialAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement)
     {
         //顯示讀取，如果有的話
-        yield return OnBeforeAdShow?.Invoke();
+        CustomYieldInstruction wait;
+        wait = OnBeforeAdShow?.Invoke();
 
 #if UNITY_EDITOR
         yield return Yielders.GetWaitForSecondsRealtime(1f);
@@ -177,7 +178,8 @@ public class AdFactory : UnitySingleton<AdFactory>
 #endif
 
         //關閉讀取，如果有的話
-        yield return OnAfterAdShow?.Invoke();
+        wait = OnAfterAdShow?.Invoke();
+        yield return wait;
     }
 
     /// <summary>
@@ -192,8 +194,10 @@ public class AdFactory : UnitySingleton<AdFactory>
 
     IEnumerator ShowRewardedAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement)
     {
+        CustomYieldInstruction wait;
         //顯示讀取，如果有的話
-        yield return OnBeforeAdShow?.Invoke();
+        wait = OnBeforeAdShow?.Invoke();
+        yield return wait;
 #if UNITY_EDITOR
         yield return Yielders.GetWaitForSecondsRealtime(1f);
         OnFinish(EditorTestResult);
@@ -210,7 +214,8 @@ public class AdFactory : UnitySingleton<AdFactory>
         }
 #endif
         //關閉讀取，如果有的話
-        yield return OnAfterAdShow?.Invoke();
+        wait = OnAfterAdShow?.Invoke();
+        yield return wait;
     }
 
     public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null)
