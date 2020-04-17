@@ -161,6 +161,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         //顯示讀取，如果有的話
         CustomYieldInstruction wait;
         wait = OnBeforeAdShow?.Invoke();
+        yield return wait;
 
 #if UNITY_EDITOR
         yield return Yielders.GetWaitForSecondsRealtime(1f);
