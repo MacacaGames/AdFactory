@@ -28,12 +28,12 @@ public class AdFactory : UnitySingleton<AdFactory>
     /// <summary>
     /// 註冊一個事件，該事件將會於 廣告顯示「前」執行
     /// </summary>
-    public Func<CustomYieldInstruction> OnBeforeAdShow;
+    public Action OnBeforeAdShow;
 
     /// <summary>
     /// 註冊一個事件，該事件將會於 廣告顯示「後」執行
     /// </summary>
-    public Func<CustomYieldInstruction> OnAfterAdShow;
+    public Action OnAfterAdShow;
 
     /// <summary>
     /// 初始化 AdFactory 並指定實做的廣告供應者
@@ -159,12 +159,10 @@ public class AdFactory : UnitySingleton<AdFactory>
     IEnumerator ShowInterstitialAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement)
     {
         //顯示讀取，如果有的話
-        CustomYieldInstruction wait;
-        wait = OnBeforeAdShow?.Invoke();
-        yield return wait;
+        OnBeforeAdShow?.Invoke();
+        yield return Yielders.GetWaitForSecondsRealtime(0.8f);
 
 #if UNITY_EDITOR
-        yield return Yielders.GetWaitForSecondsRealtime(1f);
         OnFinish(EditorTestResult);
 #else
         if (CheckInit())
@@ -179,8 +177,7 @@ public class AdFactory : UnitySingleton<AdFactory>
 #endif
 
         //關閉讀取，如果有的話
-        wait = OnAfterAdShow?.Invoke();
-        yield return wait;
+        OnAfterAdShow?.Invoke();
     }
 
     /// <summary>
@@ -195,12 +192,10 @@ public class AdFactory : UnitySingleton<AdFactory>
 
     IEnumerator ShowRewardedAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement)
     {
-        CustomYieldInstruction wait;
         //顯示讀取，如果有的話
-        wait = OnBeforeAdShow?.Invoke();
-        yield return wait;
+        OnBeforeAdShow?.Invoke();
+        yield return Yielders.GetWaitForSecondsRealtime(0.8f);
 #if UNITY_EDITOR
-        yield return Yielders.GetWaitForSecondsRealtime(1f);
         OnFinish(EditorTestResult);
 #else
         if (CheckInit())
@@ -209,14 +204,13 @@ public class AdFactory : UnitySingleton<AdFactory>
         }
         else
         {
-            yield return  Yielders.GetWaitForSecondsRealtime(1.5f);
+            yield return  Yielders.GetWaitForSecondsRealtime(1f);
             CloudMacaca.CM_APIController.ShowToastMessage("Rewarded video is not ready please check your network or try again later.");
             OnFinish(AdFactory.RewardResult.Faild);
         }
 #endif
         //關閉讀取，如果有的話
-        wait = OnAfterAdShow?.Invoke();
-        yield return wait;
+        OnAfterAdShow?.Invoke();
     }
 
     public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null)
