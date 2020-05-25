@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using GoogleMobileAds.Api;
 using UnityEngine;
 
-
+using System.Linq;
 public class AdMobManager : IAdManager
 {
     static string _admobAppId;
@@ -95,12 +95,12 @@ public class AdMobManager : IAdManager
         //沒有讀到的情況
         if (loadState_interstitialAds != AdFactory.AdsLoadState.Loaded)
         {
-            while (try_preload_times < 3)
+            while (try_preload_times < 2)
             {
                 PreloadInterstitial(id);
 
                 float wait = 0;
-                while (wait < 3)
+                while (wait < 2)
                 {
                     wait += Time.deltaTime;
                     if (loadState_interstitialAds == AdFactory.AdsLoadState.Loaded)
@@ -115,7 +115,6 @@ public class AdMobManager : IAdManager
             result = AdFactory.RewardResult.Faild;
             goto FINISH;
         }
-
 
     SHOW:
         if (interstitial != null)
@@ -215,25 +214,35 @@ public class AdMobManager : IAdManager
 
         rewardedAd.OnAdLoaded -= (object sender, EventArgs e) =>
         {
-            OnAdLoaded?.Invoke(true);
+            CheckingLoadSuccess(rewardedAd, OnAdLoaded);
         };
 
         rewardedAd.OnAdLoaded += (object sender, EventArgs e) =>
         {
-            OnAdLoaded?.Invoke(true);
+            CheckingLoadSuccess(rewardedAd, OnAdLoaded);
         };
 
         rewardedAd.OnAdFailedToLoad -= (object sender, AdErrorEventArgs e) =>
         {
-            OnAdLoaded?.Invoke(false);
+            CheckingLoadFaild(rewardedAd, OnAdLoaded);
         };
 
         rewardedAd.OnAdFailedToLoad += (object sender, AdErrorEventArgs e) =>
         {
-            OnAdLoaded?.Invoke(false);
+            CheckingLoadFaild(rewardedAd, OnAdLoaded);
         };
 
         return rewardedAd.IsLoaded();
+    }
+    void CheckingLoadSuccess(RewardedAd rewardedAd, System.Action<bool> OnAdLoaded)
+    {
+        OnAdLoaded?.Invoke(true);
+    }
+
+    void CheckingLoadFaild(RewardedAd rewardedAd, System.Action<bool> OnAdLoaded)
+    {
+        OnAdLoaded?.Invoke(false);
+        RemoveRewardAdByValue(rewardedAd);
     }
 
     public RewardedAd CreateAndLoadRewardedAd(string placement)
@@ -274,6 +283,18 @@ public class AdMobManager : IAdManager
     private void OnAdFailedToLoad(object sender, AdErrorEventArgs e)
     {
         MonoBehaviour.print("OnAdFailedToLoad event received ,msg : {e.Message}");
+        RemoveRewardAdByValue(sender as RewardedAd);
+    }
+
+    void RemoveRewardAdByValue(RewardedAd rewardedAd)
+    {
+        if (rewardedAd != null)
+        {
+            foreach (var item in rewardAdDict.Where(kvp => kvp.Value == rewardedAd).ToList())
+            {
+                rewardAdDict.Remove(item.Key);
+            }
+        }
     }
 
     private void OnAdOpening(object sender, EventArgs e)
