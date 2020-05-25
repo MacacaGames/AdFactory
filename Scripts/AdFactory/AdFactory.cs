@@ -8,6 +8,13 @@ using UnityEngine;
 /// </summary>
 public class AdFactory : UnitySingleton<AdFactory>
 {
+    public static bool IsInternetAvaliable
+    {
+        get
+        {
+            return Application.internetReachability != NetworkReachability.NotReachable;
+        }
+    }
     IAdManager adManager;
     [Header("Test Parameters")]
     [SerializeField]
@@ -165,13 +172,14 @@ public class AdFactory : UnitySingleton<AdFactory>
 #if UNITY_EDITOR
         OnFinish(EditorTestResult);
 #else
-        if (CheckInit())
+        if (CheckInit() && IsInternetAvaliable)
         {
             yield return adManager.ShowInterstitialAds(placement,OnFinish);
         }
         else
         {
             yield return  Yielders.GetWaitForSecondsRealtime(1.5f);
+            CloudMacaca.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
             OnFinish(AdFactory.RewardResult.Faild);
         }
 #endif
@@ -198,14 +206,14 @@ public class AdFactory : UnitySingleton<AdFactory>
 #if UNITY_EDITOR
         OnFinish(EditorTestResult);
 #else
-        if (CheckInit())
+        if (CheckInit() && IsInternetAvaliable)
         {
             yield return adManager.ShowRewardedAds(placement,OnFinish);
         }
         else
         {
             yield return  Yielders.GetWaitForSecondsRealtime(1f);
-            CloudMacaca.CM_APIController.ShowToastMessage("Rewarded video is not ready please check your network or try again later.");
+            CloudMacaca.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
             OnFinish(AdFactory.RewardResult.Faild);
         }
 #endif
