@@ -202,6 +202,12 @@ public class AdMobManager : IAdManager
     static Dictionary<string, RewardedAd> rewardAdDict = new Dictionary<string, RewardedAd>();
     public bool IsRewardViedoAvaliable(string placement, System.Action<bool> OnAdLoaded)
     {
+        if (!AdFactory.IsInternetAvaliable)
+        {
+            OnAdLoaded?.Invoke(false);
+            return false;
+        }
+
         if (string.IsNullOrEmpty(placement))
         {
             placement = _defaultRewaredPlacement;
