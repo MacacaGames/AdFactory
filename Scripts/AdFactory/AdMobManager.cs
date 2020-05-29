@@ -22,7 +22,7 @@ public class AdMobManager : IAdManager
     }
     public void Init()
     {
-        GoogleMobileAds.Api.MobileAds.Initialize(_admobAppId);
+        GoogleMobileAds.Api.MobileAds.Initialize(initStatus => { });
     }
 
     public void Destroy()
