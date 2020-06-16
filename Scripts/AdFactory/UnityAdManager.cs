@@ -189,6 +189,17 @@ public class UnityAdManager : IAdManager, IUnityAdsListener
     {
 
     }
+
+    public void PreLoadInterstitialAds(string placements)
+    {
+        //throw new NotImplementedException();
+    }
+
+    public bool IsInterstitialAdsAvaliable(string placement)
+    {
+        //throw new NotImplementedException();
+        return Advertisement.IsReady(placement);
+    }
 }
 
 #endif
