@@ -25,6 +25,8 @@ public class AdFactory : UnitySingleton<AdFactory>
     [SerializeField]
     bool IsRewardViedoAvaliableLoadedResult = true;
     [SerializeField]
+    bool IsInterstitialAvaliable = true;
+    [SerializeField]
     float IsRewardViedoAvaliableLoadedTime = 2f;
     public delegate void AdViewEventAnalysic(string Data);
     /// <summary>
@@ -96,7 +98,19 @@ public class AdFactory : UnitySingleton<AdFactory>
 
     public void PreLoadRewardedAd(string[] placements)
     {
+#if UNITY_EDITOR
+        //Do nothing in Editor
+#else
         adManager.PreLoadRewardedAd(placements);
+#endif
+    }
+    public void PreLoadInterstitialAds(string placements)
+    {
+#if UNITY_EDITOR
+        //Do nothing in Editor
+#else
+        adManager.PreLoadInterstitialAds(placements);
+#endif
     }
     /// <summary>
     /// 請求並顯示橫幅廣告
@@ -172,7 +186,7 @@ public class AdFactory : UnitySingleton<AdFactory>
 #if UNITY_EDITOR
         OnFinish(EditorTestResult);
 #else
-        if (CheckInit() && IsInternetAvaliable)
+        if (CheckInit() && c)
         {
             yield return adManager.ShowInterstitialAds(placement,OnFinish);
         }
@@ -187,7 +201,15 @@ public class AdFactory : UnitySingleton<AdFactory>
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
     }
+    public bool IsInterstitialAdsAvaliable(string placement)
+    {
+#if UNITY_EDITOR
+        return IsInterstitialAvaliable;
+#else
 
+        return adManager.IsInterstitialAdsAvaliable(placement);
+#endif
+    }
     /// <summary>
     /// 顯示一則獎勵廣告
     /// </summary>
@@ -300,6 +322,8 @@ public interface IAdManager
     /// </summary>
     /// <returns>一個代表廣告顯示進程的 Coroutine</returns>
     IEnumerator ShowInterstitialAds(string placement, Action<AdFactory.RewardResult> OnFinish);
+    void PreLoadInterstitialAds(string placements);
+    bool IsInterstitialAdsAvaliable(string placement);
 
     /// <summary>
     /// 顯示一則獎勵廣告

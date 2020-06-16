@@ -134,12 +134,21 @@ public class AdMobManager : IAdManager
     FINISH:
         PreloadInterstitial(id);
 
-        DestroyInterstitial();
-
         if (callback != null)
             callback(result);
     }
-
+    public void PreLoadInterstitialAds(string placements)
+    {
+        PreloadInterstitial(placements);
+    }
+    public bool IsInterstitialAdsAvaliable(string placement)
+    {
+        if (interstitial == null)
+        {
+            return false;
+        }
+        return interstitial.IsLoaded();
+    }
     void _ShowInterstitialAds()
     {
         if (interstitial.IsLoaded())
