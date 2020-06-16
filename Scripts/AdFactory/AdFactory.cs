@@ -186,7 +186,7 @@ public class AdFactory : UnitySingleton<AdFactory>
 #if UNITY_EDITOR
         OnFinish(EditorTestResult);
 #else
-        if (CheckInit() && c)
+        if (CheckInit() && IsInternetAvaliable)
         {
             yield return adManager.ShowInterstitialAds(placement,OnFinish);
         }
