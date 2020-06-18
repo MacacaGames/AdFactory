@@ -181,7 +181,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     {
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
-        yield return Yielders.GetWaitForSecondsRealtime(0.8f);
+        yield return Yielders.GetWaitForSecondsRealtime(1f);
 
 #if UNITY_EDITOR
         OnFinish(EditorTestResult);
@@ -224,7 +224,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     {
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
-        yield return Yielders.GetWaitForSecondsRealtime(0.8f);
+        yield return Yielders.GetWaitForSecondsRealtime(1f);
 #if UNITY_EDITOR
         OnFinish(EditorTestResult);
 #else
