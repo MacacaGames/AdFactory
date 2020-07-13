@@ -310,7 +310,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     }
     void OnApplicationPause(bool isPaused)
     {
-        adManager.OnApplicationPause(isPaused);
+        adManager?.OnApplicationPause(isPaused);
     }
 }
 
