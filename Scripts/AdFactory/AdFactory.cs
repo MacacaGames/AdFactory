@@ -73,6 +73,11 @@ public class AdFactory : UnitySingleton<AdFactory>
                 _adManager = new UnityAdManager(AppId, DefaultRewaredPlacement, DefaultIterstitialPlacement, "");
 #endif
                 break;
+#if AdFactory_IronSource
+            case AdProvider.IronSource:
+                _adManager = new IronSourceManager(AppId, DefaultRewaredPlacement, DefaultIterstitialPlacement, "");
+                break;
+#endif
         }
         Init(_adManager);
     }
@@ -95,6 +100,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         adManager = provider;
         adManager.Init();
     }
+   
 
     public void PreLoadRewardedAd(string[] placements)
     {
@@ -272,7 +278,8 @@ public class AdFactory : UnitySingleton<AdFactory>
     {
         AdMob = 0,
         UnityAd = 1,
-        FacebookAudienceNetwork = 2
+        FacebookAudienceNetwork = 2,
+        IronSource = 3
     }
 
     public enum AdType
@@ -301,12 +308,17 @@ public class AdFactory : UnitySingleton<AdFactory>
         Exception,
         Complete,
     }
+    void OnApplicationPause(bool isPaused)
+    {
+        adManager.OnApplicationPause(isPaused);
+    }
 }
 
 public interface IAdManager
 {
     void Init();
     void Destroy();
+    void OnApplicationPause(bool isPaused);
 
     /// <summary>
     /// Show the banner ad

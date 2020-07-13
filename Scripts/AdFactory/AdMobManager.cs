@@ -24,7 +24,10 @@ public class AdMobManager : IAdManager
     {
         GoogleMobileAds.Api.MobileAds.Initialize(initStatus => { });
     }
+    public void OnApplicationPause(bool isPaused)
+    {
 
+    }
     public void Destroy()
     {
 

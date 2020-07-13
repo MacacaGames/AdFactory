@@ -25,7 +25,10 @@ public class UnityAdManager : IAdManager, IUnityAdsListener
         Advertisement.Initialize(_gameId);
         Advertisement.AddListener(this);
     }
+ public void OnApplicationPause(bool isPaused)
+    {
 
+    }
     /// <summary>
     /// Add two number
     /// </summary>
