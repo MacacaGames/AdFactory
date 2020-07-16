@@ -88,17 +88,17 @@ public class IronSourceManager : IAdManager
     bool isShowedInterstitialAds;
     public AdFactory.AdsLoadState loadState_interstitialAds = AdFactory.AdsLoadState.Exception;
     bool isInterstitialAdClose = false;
+    bool isInterstitialShowFaild = false;
 
     public IEnumerator ShowInterstitialAds(string placement, Action<AdFactory.RewardResult> OnComplete)
     {
         string id = _defaultIterstitialPlacement;
         AdFactory.RewardResult result = AdFactory.RewardResult.Error;
-
+        isInterstitialShowFaild = false;
         isInterstitialAdClose = false;
-        int try_preload_times = 0;
 
         //等一秒，騙使用者很忙
-        yield return new WaitForSecondsRealtime(1f);
+        yield return new WaitForSecondsRealtime(0.5f);
 
         //沒有讀到的情況
         if (loadState_interstitialAds != AdFactory.AdsLoadState.Loaded)
@@ -115,8 +115,6 @@ public class IronSourceManager : IAdManager
                 }
                 yield return null;
             }
-            try_preload_times++;
-            Debug.Log("Try load times : " + try_preload_times);
 
             result = AdFactory.RewardResult.Faild;
             goto FINISH;
@@ -129,8 +127,14 @@ public class IronSourceManager : IAdManager
             _ShowInterstitialAds();
         }
 
+
         while (!isInterstitialAdClose)
         {
+            if (isInterstitialShowFaild)
+            {
+                result = AdFactory.RewardResult.Faild;
+                goto FINISH;
+            }
             yield return null;
         }
 
@@ -199,6 +203,7 @@ public class IronSourceManager : IAdManager
     void InterstitialAdShowFailedEvent(IronSourceError error)
     {
         Debug.Log("unity-script: I got InterstitialAdShowFailedEvent, code :  " + error.getCode() + ", description : " + error.getDescription());
+        isInterstitialShowFaild = true;
     }
 
     void InterstitialAdClickedEvent()
@@ -272,6 +277,7 @@ public class IronSourceManager : IAdManager
 
     void RewardedVideoAdShowFailedEvent(IronSourceError error)
     {
+        isRewardShowFaild = true;
         Debug.Log("unity-script: I got RewardedVideoAdShowFailedEvent, code :  " + error.getCode() + ", description : " + error.getDescription());
     }
 
@@ -281,6 +287,7 @@ public class IronSourceManager : IAdManager
     }
 
     bool isRewardAdClose = false;
+    bool isRewardShowFaild = false;
     bool isRewarded = false;
     public IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> OnFinish)
     {
@@ -288,7 +295,7 @@ public class IronSourceManager : IAdManager
         int try_preload_times = 0;
         isRewardAdClose = false;
         isRewarded = false;
-
+        isRewardShowFaild = false;
         if (string.IsNullOrEmpty(placement))
         {
             placement = _defaultRewaredPlacement;
@@ -331,6 +338,11 @@ public class IronSourceManager : IAdManager
 
         while (isRewardAdClose == false)
         {
+            if (isRewardShowFaild)
+            {
+                result = AdFactory.RewardResult.Faild;
+                goto FINISH;
+            }
             yield return null;
         }
 
