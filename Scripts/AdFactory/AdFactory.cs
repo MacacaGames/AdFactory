@@ -43,6 +43,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     /// 註冊一個事件，該事件將會於 廣告顯示「後」執行
     /// </summary>
     public Action OnAfterAdShow;
+    public Action<AdType, RewardResult> OnAdResult;
 
     /// <summary>
     /// 初始化 AdFactory 並指定實做的廣告供應者
@@ -100,7 +101,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         adManager = provider;
         adManager.Init();
     }
-   
+
 
     public void PreLoadRewardedAd(string[] placements)
     {
@@ -188,22 +189,24 @@ public class AdFactory : UnitySingleton<AdFactory>
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
         yield return Yielders.GetWaitForSecondsRealtime(1f);
-
+        AdFactory.RewardResult result = AdFactory.RewardResult.Faild;
 #if UNITY_EDITOR
-        OnFinish(EditorTestResult);
+        result = EditorTestResult;
 #else
         if (CheckInit() && IsInternetAvaliable)
         {
-            yield return adManager.ShowInterstitialAds(placement,OnFinish);
+            yield return adManager.ShowInterstitialAds(placement,(r)=>{
+                result = r;
+            });
         }
         else
         {
             yield return  Yielders.GetWaitForSecondsRealtime(1.5f);
             CloudMacaca.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
-            OnFinish(AdFactory.RewardResult.Faild);
         }
 #endif
-
+        OnFinish?.Invoke(result);
+        OnAdResult?.Invoke(AdType.Interstitial, result);
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
     }
@@ -231,20 +234,24 @@ public class AdFactory : UnitySingleton<AdFactory>
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
         yield return Yielders.GetWaitForSecondsRealtime(1f);
+        AdFactory.RewardResult result = AdFactory.RewardResult.Faild;
 #if UNITY_EDITOR
-        OnFinish(EditorTestResult);
+        result = EditorTestResult;
 #else
         if (CheckInit() && IsInternetAvaliable)
         {
-            yield return adManager.ShowRewardedAds(placement,OnFinish);
+            yield return adManager.ShowRewardedAds(placement,(r)=>{
+                result = r;
+            });
         }
         else
         {
             yield return  Yielders.GetWaitForSecondsRealtime(1f);
             CloudMacaca.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
-            OnFinish(AdFactory.RewardResult.Faild);
         }
 #endif
+        OnAdResult?.Invoke(AdType.Interstitial, result);
+        OnFinish?.Invoke(result);
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
     }
