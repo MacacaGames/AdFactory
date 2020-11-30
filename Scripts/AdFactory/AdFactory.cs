@@ -206,9 +206,9 @@ public class AdFactory : UnitySingleton<AdFactory>
         }
 #endif
         OnFinish?.Invoke(result);
-        OnAdResult?.Invoke(AdType.Interstitial, result);
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
+        OnAdResult?.Invoke(AdType.Interstitial, result);
     }
     public bool IsInterstitialAdsAvaliable(string placement)
     {
@@ -250,10 +250,10 @@ public class AdFactory : UnitySingleton<AdFactory>
             CloudMacaca.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
         }
 #endif
-        OnAdResult?.Invoke(AdType.Interstitial, result);
         OnFinish?.Invoke(result);
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
+        OnAdResult?.Invoke(AdType.Reward, result);
     }
 
     public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null)
