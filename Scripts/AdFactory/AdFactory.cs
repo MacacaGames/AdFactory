@@ -202,7 +202,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         else
         {
             yield return  Yielders.GetWaitForSecondsRealtime(1.5f);
-            CloudMacaca.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
+            MacacaGames.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
         }
 #endif
         OnFinish?.Invoke(result);
@@ -247,7 +247,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         else
         {
             yield return  Yielders.GetWaitForSecondsRealtime(1f);
-            CloudMacaca.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
+            MacacaGames.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
         }
 #endif
         OnAdResult?.Invoke(AdType.Interstitial, result);
