@@ -1,0 +1,15 @@
+{
+    "name": "AdFactory",
+    "references": [
+        "GUID:474def811854047f9b89854e89359183"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
