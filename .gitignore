@@ -130,3 +130,8 @@ $RECYCLE.BIN/
 .DS_Store
 
 _NCrunch*
+
+docs/*/*.meta
+Document/*/*.meta
+docs/*.meta
+Document/*.meta
