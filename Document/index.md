@@ -1,0 +1,1 @@
+See [Document](http://macacagames.github.io/AdFactory/) for more detail.
