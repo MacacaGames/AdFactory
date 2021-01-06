@@ -43,7 +43,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     /// 註冊一個事件，該事件將會於 廣告顯示「後」執行
     /// </summary>
     public Action OnAfterAdShow;
-    public Action<AdType, RewardResult> OnAdResult;
+    public Action<AdType, RewardResult, string> OnAdResult;
 
     /// <summary>
     /// 初始化 AdFactory 並指定實做的廣告供應者
@@ -208,7 +208,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         OnFinish?.Invoke(result);
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
-        OnAdResult?.Invoke(AdType.Interstitial, result);
+        OnAdResult?.Invoke(AdType.Interstitial, result, placement);
     }
     public bool IsInterstitialAdsAvaliable(string placement)
     {
@@ -253,7 +253,7 @@ public class AdFactory : UnitySingleton<AdFactory>
         OnFinish?.Invoke(result);
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
-        OnAdResult?.Invoke(AdType.Reward, result);
+        OnAdResult?.Invoke(AdType.Reward, result, placement);
     }
 
     public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null)
