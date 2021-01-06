@@ -45,43 +45,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     public Action OnAfterAdShow;
     public Action<AdType, RewardResult, string> OnAdResult;
 
-    /// <summary>
-    /// 初始化 AdFactory 並指定實做的廣告供應者
-    /// </summary>
-    public void Init(
-        AdProvider provider,
-        string AppId = "",
-        string DefaultRewaredPlacement = "",
-        string DefaultIterstitialPlacement = "",
-        string DefaultBannerPlacement = "")
-    {
-        if (CheckInit())
-        {
-            Debug.LogWarning("AdFactory is Inited Return");
-            return;
-        }
-        Debug.LogWarning("Init AdFactory with " + provider);
-        IAdManager _adManager = null;
-        switch (provider)
-        {
-            case AdProvider.AdMob:
-#if AdFactory_Admob
-                _adManager = new AdMobManager(AppId, DefaultRewaredPlacement, DefaultIterstitialPlacement, DefaultBannerPlacement);
-#endif
-                break;
-            case AdProvider.UnityAd:
-#if AdFactory_Unity
-                _adManager = new UnityAdManager(AppId, DefaultRewaredPlacement, DefaultIterstitialPlacement, "");
-#endif
-                break;
-#if AdFactory_IronSource
-            case AdProvider.IronSource:
-                _adManager = new IronSourceManager(AppId, DefaultRewaredPlacement, DefaultIterstitialPlacement, "");
-                break;
-#endif
-        }
-        Init(_adManager);
-    }
+  
     public void Init(IAdManager provider)
     {
         if (CheckInit())
