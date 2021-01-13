@@ -228,7 +228,7 @@ public class AdFactory : MonoBehaviour
         }
         else
         {
-            yield return  WaitForSecondsRealtime(1f);
+            yield return new WaitForSecondsRealtime(1f);
            Debug.Log("Video is not ready please check your network or try again later.");
         }
 #endif
