@@ -1,9 +1,6 @@
 {
     "name": "AdFactory",
-    "references": [
-        "GUID:474def811854047f9b89854e89359183",
-        "GUID:3de075385d2034a6faaa083b1a2a0333"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

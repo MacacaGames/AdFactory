@@ -63,22 +63,51 @@
 
 <p>See <a href="http://macacagames.github.io/AdFactory/">Document</a> for more detail.</p>
 <h1 id="welcome-to-macaca-adfactory">Welcome to Macaca AdFactory</h1>
+<p>AdFactory is a Mobile Ad Wrapper for Unity3D, you can easy change Ad's implemention by simply implement dirrerent IAdManager, and also makes testing Ad in Editor easilier.</p>
 <h2 id="installation">Installation</h2>
 <h3 id="option-1-unity-package-manager">Option 1: Unity Package manager</h3>
 <p>Add it to your editor's <code>manifest.json</code> file like this:</p>
 <pre><code class="lang-json">{
     &quot;dependencies&quot;: {
-        &quot;com.macacagames.adfactory&quot;: &quot;https://github.com/MacacaGames/AdFactory.git&quot;,
-        &quot;com.macacagames.utility&quot;: &quot;https://github.com/MacacaGames/MacacaUtility.git&quot;,
+        &quot;com.macacagames.adfactory&quot;: &quot;https://github.com/MacacaGames/AdFactory.git#1.0.0&quot;,
+        &quot;com.macacagames.utility&quot;: &quot;https://github.com/MacacaGames/MacacaUtility.git#1.0.0&quot;,
     }
 }
 </code></pre>
+<p>You can remove the #1.0.0 to use the latest version (unstable)</p>
 <h3 id="option-2-git-submodule">Option 2: Git SubModule</h3>
 <p>Note: AdFactory is dependency with Macaca Utility so also add it in git submodule.</p>
 <pre><code class="lang-bash">git submodule add https://github.com/MacacaGames/AdFactory.git Assets/MacacaGameSystem
 
 git submodule add https://github.com/MacacaGames/MacacaUtility.git Assets/Mast
 </code></pre>
+<h2 id="implement-the-iadmanager-for-your-project">Implement the IAdManager for your project</h2>
+<p>Implement your IAdManager to makes AdFactory work, or use pre-build IAdManager, currentlly we have implement Admob, IronSource, UnityAds.</p>
+<h2 id="use-pre-build-iadmanager-implement">Use pre-build IAdManager implement</h2>
+<p>AdFactory has implement three IAdManager, to use the pre-build IAdManager just copy the IAdManager from PackageRoot/IAdManagerImpl folder to your project UnityProject/Assets folder.
+Please remember also import the third party Ad SDK.</p>
+<table>
+    <tr>
+        <td>IAdManager</td>
+        <td>SDK</td>
+    </tr>
+    <tr>
+        <td>AdMobManager</td>
+        <td>
+        <a href="https://developers.google.com/admob/unity/quick-start">SDK</a>
+        </td>
+    </tr>
+    <tr>
+        <td>IronSourceManager</td>
+         <td>
+        <a href="https://developers.ironsrc.com/ironsource-mobile/unity/unity-plugin/#step-1">SDK</a>
+        </td>
+    </tr>
+    <tr>
+        <td>UnityAdManager</td>
+        <td>Install the SDK via UPM</td>
+    </tr>
+</table>
 </article>
           </div>
           
@@ -87,7 +116,7 @@ git submodule add https://github.com/MacacaGames/MacacaUtility.git Assets/Mast
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/MacacaGames/AdFactory/blob/34c5b1ddda322a5d2d31d43a618e364ba778fdfc/Document/index.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/MacacaGames/AdFactory/blob/master/Document/index.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>

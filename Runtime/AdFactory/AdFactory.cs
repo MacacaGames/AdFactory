@@ -6,8 +6,26 @@ using UnityEngine;
 /// <summary>
 /// AdFactory 統一對外提供所有廣告的顯示與撥放，具體的廣告供應者則以 IAdManager 的實作為主
 /// </summary>
-public class AdFactory : UnitySingleton<AdFactory>
+public class AdFactory : MonoBehaviour
 {
+    static AdFactory _instance;
+    public static AdFactory Instance
+    {
+        get
+        {
+            if (_instance == null)
+                _instance = Initiate();
+            return _instance;
+        }
+    }
+    static AdFactory Initiate()
+    {
+        GameObject host = new GameObject();
+        host.name = "AdFactory";
+        DontDestroyOnLoad(host);
+        return host.AddComponent<AdFactory>();
+    }
+
     public static bool IsInternetAvaliable
     {
         get
@@ -45,7 +63,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     public Action OnAfterAdShow;
     public Action<AdType, RewardResult, string> OnAdResult;
 
-  
+
     public void Init(IAdManager provider)
     {
         if (CheckInit())
@@ -152,7 +170,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     {
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
-        yield return Yielders.GetWaitForSecondsRealtime(1f);
+        yield return new WaitForSecondsRealtime(1f);
         AdFactory.RewardResult result = AdFactory.RewardResult.Faild;
 #if UNITY_EDITOR
         result = EditorTestResult;
@@ -165,8 +183,8 @@ public class AdFactory : UnitySingleton<AdFactory>
         }
         else
         {
-            yield return  Yielders.GetWaitForSecondsRealtime(1.5f);
-            MacacaGames.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
+            yield return new WaitForSecondsRealtime(1.5f);
+           Debug.Log("Video is not ready please check your network or try again later.");
         }
 #endif
         OnFinish?.Invoke(result);
@@ -197,7 +215,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     {
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
-        yield return Yielders.GetWaitForSecondsRealtime(1f);
+        yield return new WaitForSecondsRealtime(1f);
         AdFactory.RewardResult result = AdFactory.RewardResult.Faild;
 #if UNITY_EDITOR
         result = EditorTestResult;
@@ -210,8 +228,8 @@ public class AdFactory : UnitySingleton<AdFactory>
         }
         else
         {
-            yield return  Yielders.GetWaitForSecondsRealtime(1f);
-            MacacaGames.CM_APIController.ShowToastMessage("Video is not ready please check your network or try again later.");
+            yield return  WaitForSecondsRealtime(1f);
+           Debug.Log("Video is not ready please check your network or try again later.");
         }
 #endif
         OnFinish?.Invoke(result);
@@ -231,7 +249,7 @@ public class AdFactory : UnitySingleton<AdFactory>
     }
     IEnumerator EditorIsRewardVideoAvaliabale(System.Action<bool> OnAdLoaded)
     {
-        yield return Yielders.GetWaitForSecondsRealtime(IsRewardViedoAvaliableLoadedTime);
+        yield return new WaitForSecondsRealtime(IsRewardViedoAvaliableLoadedTime);
         OnAdLoaded?.Invoke(IsRewardViedoAvaliableLoadedResult);
     }
 

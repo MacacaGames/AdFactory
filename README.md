@@ -11,7 +11,6 @@ Add it to your editor's `manifest.json` file like this:
 {
     "dependencies": {
         "com.macacagames.adfactory": "https://github.com/MacacaGames/AdFactory.git#1.0.0",
-        "com.macacagames.utility": "https://github.com/MacacaGames/MacacaUtility.git#1.0.0",
     }
 }
 ```
@@ -23,9 +22,8 @@ Note: AdFactory is dependency with Macaca Utility so also add it in git submodul
 
 ```bash
 git submodule add https://github.com/MacacaGames/AdFactory.git Assets/MacacaGameSystem
-
-git submodule add https://github.com/MacacaGames/MacacaUtility.git Assets/Mast
 ```
+
 ## Implement the IAdManager for your project
 Implement your IAdManager to makes AdFactory work, or use pre-build IAdManager, currentlly we have implement Admob, IronSource, UnityAds.
 
