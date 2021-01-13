@@ -1,4 +1,3 @@
-#if AdFactory_Unity
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -205,4 +204,3 @@ public class UnityAdManager : IAdManager, IUnityAdsListener
     }
 }
 
-#endif

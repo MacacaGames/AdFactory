@@ -1,4 +1,3 @@
-#if AdFactory_IronSource
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -370,4 +369,3 @@ public class IronSourceManager : IAdManager
     #endregion
 }
 
-#endif
