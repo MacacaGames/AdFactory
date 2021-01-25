@@ -25,11 +25,11 @@ git submodule add https://github.com/MacacaGames/AdFactory.git Assets/MacacaGame
 ```
 
 ## Implement the IAdManager for your project
-Implement your IAdManager to makes AdFactory work, or use pre-build IAdManager, currentlly we have implement Admob, IronSource, UnityAds.
+`Implement your IAdManager to makes AdFactory work`, or use `pre-build IAdManager`, currentlly we have implement Admob, IronSource, UnityAds.
 
-## Use pre-build IAdManager implement
-AdFactory has implement three IAdManager, to use the pre-build IAdManager just copy the IAdManager from PackageRoot/IAdManagerImpl folder to your project UnityProject/Assets folder.
-Please remember also import the third party Ad SDK.
+### Use pre-build IAdManager implement
+AdFactory has implement three IAdManager, to use the pre-build IAdManager just copy the IAdManager from `PackageRoot/IAdManagerImpl` folder to any folder under your project  `UnityProject/Assets/...`.
+Please remember to import the third-party Ad SDK.
 
 <table>
     <tr>
