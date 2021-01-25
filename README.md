@@ -5,7 +5,7 @@ AdFactory is a Mobile Ad Wrapper for Unity3D, you can easy change Ad's implement
 
 ## Installation
 
-### Option 1: Unity Package manager
+### Option 1: Unity Package manager (Recommended)
 Add it to your editor's `manifest.json` file like this:
 ```json
 {
@@ -18,7 +18,7 @@ You can remove the #1.0.0 to use the latest version (unstable)
 
 
 ### Option 2: Git SubModule
-Note: AdFactory is dependency with Macaca Utility so also add it in git submodule.
+Note: when using git submodule to import, you can use pre-build IAdManager directly without make a copy into your project folder.
 
 ```bash
 git submodule add https://github.com/MacacaGames/AdFactory.git Assets/MacacaGameSystem
@@ -83,7 +83,7 @@ string[] ad_admobRewardeds = new string[]{
 string ad_admobInterstitial = "{your admob interstital placement}";
 
 AdFactory.Instance.PreLoadInterstitialAds(ad_admobRewardeds);
-AdFactory.Instance.AdFactory.Instance.PreLoadInterstitialAds(ad_admobInterstitial);
+AdFactory.Instance.PreLoadInterstitialAds(ad_admobInterstitial);
 ```
 
 - Show Reward Video ads
