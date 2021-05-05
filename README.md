@@ -90,7 +90,14 @@ AdFactory.Instance.PreLoadInterstitialAds(ad_admobInterstitial);
 
 ```csharp
 /// Show a reward video with default placement
-AdFactory.Instance.ShowRewardedAds(RewardAdResult);
+AdFactory.Instance.ShowRewardedAds(
+    (result)=>{
+        if(result == AdFactory.RewardResult.Success){
+            // Ad shows and reward success
+            // do your server-side verification if required
+        }
+    }
+);
 
 /// Show a reward video with the placement
 string special_reward_placement = "{your reward video placement-3}";
@@ -102,13 +109,24 @@ void RewardAdResult(AdFactory.RewardResult result){
         // do your server-side verification if required
     }
 }
+
+/// You can yield return ShowInterstitialAds method. 
+yield return AdFactory.Instance.ShowRewardedAds(null);
 ```
 
 - Show Intertistial ads
 
 ```csharp
 /// Show a interstital ad with default placement
-AdFactory.Instance.ShowInterstitialAds(InterstitialAdResult);
+AdFactory.Instance.ShowInterstitialAds(
+    (result)=>{
+        if(result == AdFactory.RewardResult.Success){
+            // Ad shows success
+            // do your server-side verification if required
+        }
+    }
+);
+
 
 /// Show a interstital ad with the placement
 string special_interstital_placement = "{your interstital placement-2}";
@@ -119,6 +137,9 @@ void InterstitialAdResult(AdFactory.RewardResult result){
         // Ad shows success
     }
 }
+
+/// You can yield return ShowInterstitialAds method. 
+yield return AdFactory.Instance.ShowInterstitialAds(null);
 ```
 
 - Show Banner
