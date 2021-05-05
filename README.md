@@ -110,7 +110,7 @@ void RewardAdResult(AdFactory.RewardResult result){
     }
 }
 
-/// You can yield return ShowInterstitialAds method. 
+/// You can yield return ShowRewardedAds method. 
 yield return AdFactory.Instance.ShowRewardedAds(null);
 ```
 
