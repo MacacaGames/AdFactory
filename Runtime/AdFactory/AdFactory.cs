@@ -83,7 +83,12 @@ public class AdFactory : MonoBehaviour
         adManager = provider;
         adManager.Init();
     }
-
+    
+    public void SwitchAdManager(IAdManager provider)
+    {
+        adManager = provider;
+        adManager.Init();
+    }
 
     public void PreLoadRewardedAd(string[] placements)
     {
