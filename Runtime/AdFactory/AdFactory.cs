@@ -33,7 +33,8 @@ public class AdFactory : MonoBehaviour
             return Application.internetReachability != NetworkReachability.NotReachable;
         }
     }
-    IAdManager adManager;
+    IAdManager fallbackAdManager;
+    IAdManager mainAdManager;
     [Header("Test Parameters")]
     [SerializeField]
     AdFactory.RewardResult EditorTestResult = AdFactory.RewardResult.Success;
@@ -46,6 +47,7 @@ public class AdFactory : MonoBehaviour
     bool IsInterstitialAvaliable = true;
     [SerializeField]
     float IsRewardViedoAvaliableLoadedTime = 2f;
+    public FallbackHandle fallbackHandle = FallbackHandle.DontFallback;
     public delegate void AdViewEventAnalysic(string Data);
     /// <summary>
     /// 註冊一個事件，該事件將會於 廣告顯示「前」執行
@@ -63,12 +65,13 @@ public class AdFactory : MonoBehaviour
     public Action OnAfterAdShow;
     public Action<AdType, RewardResult, string> OnAdResult;
 
-
     public void Init(IAdManager provider)
     {
         if (CheckInit())
         {
+#if UNITY_EDITOR
             Debug.LogError("AdFactory is Inited Return");
+#endif
             return;
         }
 
@@ -80,14 +83,14 @@ public class AdFactory : MonoBehaviour
 
         Debug.LogWarning("Init AdFactory with " + provider);
 
-        adManager = provider;
-        adManager.Init();
+        mainAdManager = provider;
+        mainAdManager.Init();
     }
-    
-    public void SwitchAdManager(IAdManager provider)
+
+    public void AddFallbackAdmanager(IAdManager provider)
     {
-        adManager = provider;
-        adManager.Init();
+        mainAdManager = provider;
+        mainAdManager.Init();
     }
 
     public void PreLoadRewardedAd(string[] placements)
@@ -118,7 +121,7 @@ public class AdFactory : MonoBehaviour
             return false;
         }
 
-        return adManager.ShowBannerAd(placement);
+        return mainAdManager.ShowBannerAd(placement);
     }
 
     public int GetBannerHeight()
@@ -129,7 +132,7 @@ public class AdFactory : MonoBehaviour
             return 0;
         }
 
-        return adManager.GetBannerHeight();
+        return mainAdManager.GetBannerHeight();
     }
 
     /// <summary>
@@ -144,7 +147,7 @@ public class AdFactory : MonoBehaviour
             return false;
         }
 
-        return adManager.HasBannerView();
+        return mainAdManager.HasBannerView();
     }
 
     /// <summary>
@@ -159,7 +162,7 @@ public class AdFactory : MonoBehaviour
             return false;
 
         }
-        return adManager.RemoveBannerView();
+        return mainAdManager.RemoveBannerView();
     }
 
     /// <summary>
@@ -175,6 +178,14 @@ public class AdFactory : MonoBehaviour
     {
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
+        var currentAdManager = mainAdManager;
+        if (!mainAdManager.IsInterstitialAdsAvaliable(placement) &&
+            fallbackAdManager != null &&
+            fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable)
+        {
+            currentAdManager = fallbackAdManager;
+        }
+
         yield return new WaitForSecondsRealtime(1f);
         AdFactory.RewardResult result = AdFactory.RewardResult.Faild;
 #if UNITY_EDITOR
@@ -182,7 +193,7 @@ public class AdFactory : MonoBehaviour
 #else
         if (CheckInit() && IsInternetAvaliable)
         {
-            yield return adManager.ShowInterstitialAds(placement,(r)=>{
+            yield return currentAdManager.ShowInterstitialAds(placement,(r)=>{
                 result = r;
             });
         }
@@ -197,13 +208,20 @@ public class AdFactory : MonoBehaviour
         OnAfterAdShow?.Invoke();
         OnAdResult?.Invoke(AdType.Interstitial, result, placement);
     }
-    public bool IsInterstitialAdsAvaliable(string placement)
+    public bool IsInterstitialAdsAvaliable(string placement, AdManagerType adManagerType = AdManagerType.Main)
     {
+
 #if UNITY_EDITOR
         return IsInterstitialAvaliable;
 #else
-
-        return adManager.IsInterstitialAdsAvaliable(placement);
+        var currentAdManager = mainAdManager;
+        if (!mainAdManager.IsInterstitialAdsAvaliable(placement) &&
+            fallbackAdManager != null &&
+            adManagerType == AdManagerType.Fallback)
+        {
+            currentAdManager = fallbackAdManager;
+        }
+        return currentAdManager.IsInterstitialAdsAvaliable(placement);
 #endif
     }
     /// <summary>
@@ -220,6 +238,15 @@ public class AdFactory : MonoBehaviour
     {
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
+
+        var currentAdManager = mainAdManager;
+        if (!mainAdManager.IsRewardViedoAvaliable(placement, null) &&
+            fallbackAdManager != null &&
+            fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable)
+        {
+            currentAdManager = fallbackAdManager;
+        }
+
         yield return new WaitForSecondsRealtime(1f);
         AdFactory.RewardResult result = AdFactory.RewardResult.Faild;
 #if UNITY_EDITOR
@@ -227,7 +254,7 @@ public class AdFactory : MonoBehaviour
 #else
         if (CheckInit() && IsInternetAvaliable)
         {
-            yield return adManager.ShowRewardedAds(placement,(r)=>{
+            yield return currentAdManager.ShowRewardedAds(placement,(r)=>{
                 result = r;
             });
         }
@@ -243,13 +270,21 @@ public class AdFactory : MonoBehaviour
         OnAdResult?.Invoke(AdType.Reward, result, placement);
     }
 
-    public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null)
+    public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null, AdManagerType adManagerType = AdManagerType.Main)
     {
+
 #if UNITY_EDITOR
         StartCoroutine(EditorIsRewardVideoAvaliabale(OnAdLoaded));
         return IsRewardViedoAvaliableDirectResult;
 #else
-        return adManager.IsRewardViedoAvaliable(placement, OnAdLoaded);
+        var currentAdManager = mainAdManager;
+        if (!mainAdManager.IsRewardViedoAvaliable(placement, null) &&
+            fallbackAdManager != null &&
+            adManagerType == AdManagerType.Fallback)
+        {
+            currentAdManager = fallbackAdManager;
+        }
+        return currentAdManager.IsRewardViedoAvaliable(placement, OnAdLoaded);
 #endif
     }
     IEnumerator EditorIsRewardVideoAvaliabale(System.Action<bool> OnAdLoaded)
@@ -265,16 +300,9 @@ public class AdFactory : MonoBehaviour
 #if UNITY_EDITOR
         return true;
 #endif
-        return adManager != null;
+        return mainAdManager != null;
     }
 
-    public enum AdProvider
-    {
-        AdMob = 0,
-        UnityAd = 1,
-        FacebookAudienceNetwork = 2,
-        IronSource = 3
-    }
 
     public enum AdType
     {
@@ -304,7 +332,17 @@ public class AdFactory : MonoBehaviour
     }
     void OnApplicationPause(bool isPaused)
     {
-        adManager?.OnApplicationPause(isPaused);
+        mainAdManager?.OnApplicationPause(isPaused);
+    }
+    public enum FallbackHandle
+    {
+        DontFallback,
+        AlwaysFallbackIfPossiable,
+    }
+    public enum AdManagerType
+    {
+        Main,
+        Fallback
     }
 }
 
