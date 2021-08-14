@@ -89,24 +89,39 @@ public class AdFactory : MonoBehaviour
 
     public void AddFallbackAdmanager(IAdManager provider)
     {
-        mainAdManager = provider;
-        mainAdManager.Init();
+        fallbackAdManager = provider;
+        fallbackAdManager.Init();
     }
 
-    public void PreLoadRewardedAd(string[] placements)
+    public void PreLoadRewardedAd(string[] placements, AdManagerType adManagerType = AdManagerType.Main)
     {
+
+
 #if UNITY_EDITOR
         //Do nothing in Editor
 #else
-        adManager.PreLoadRewardedAd(placements);
+        var currentAdManager = mainAdManager;
+        if (fallbackAdManager != null &&
+            adManagerType == AdManagerType.Fallback)
+        {
+            currentAdManager = fallbackAdManager;
+        }
+        currentAdManager.PreLoadRewardedAd(placements);
 #endif
     }
-    public void PreLoadInterstitialAds(string placements)
+    public void PreLoadInterstitialAds(string placements, AdManagerType adManagerType = AdManagerType.Main)
     {
+
 #if UNITY_EDITOR
         //Do nothing in Editor
 #else
-        adManager.PreLoadInterstitialAds(placements);
+        var currentAdManager = mainAdManager;
+        if (fallbackAdManager != null &&
+            adManagerType == AdManagerType.Fallback)
+        {
+            currentAdManager = fallbackAdManager;
+        }
+        currentAdManager.PreLoadInterstitialAds(placements);
 #endif
     }
     /// <summary>
