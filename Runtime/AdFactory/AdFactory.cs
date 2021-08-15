@@ -193,22 +193,22 @@ public class AdFactory : MonoBehaviour
     {
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
-       
         yield return new WaitForSecondsRealtime(1f);
         AdFactory.RewardResult result = AdFactory.RewardResult.Faild;
 #if UNITY_EDITOR
         result = EditorTestResult;
 #else
-        var currentAdManager = mainAdManager;
-        if (!mainAdManager.IsInterstitialAdsAvaliable(placement) &&
-            fallbackAdManager != null &&
-            fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable)
-        {
-            currentAdManager = fallbackAdManager;
-        }
-
         if (CheckInit() && IsInternetAvaliable)
         {
+            var currentAdManager = mainAdManager;
+            if (!mainAdManager.IsInterstitialAdsAvaliable(placement) &&
+                fallbackAdManager != null &&
+                fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable)
+            {
+                currentAdManager = fallbackAdManager;
+                // preload the ad for the next show
+                mainAdManager.PreLoadInterstitialAds(placement);
+            }
             yield return currentAdManager.ShowInterstitialAds(placement,(r)=>{
                 result = r;
             });
@@ -255,22 +255,24 @@ public class AdFactory : MonoBehaviour
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
 
-       
 
         yield return new WaitForSecondsRealtime(1f);
         AdFactory.RewardResult result = AdFactory.RewardResult.Faild;
 #if UNITY_EDITOR
         result = EditorTestResult;
 #else
-        var currentAdManager = mainAdManager;
-        if (!mainAdManager.IsRewardViedoAvaliable(placement, null) &&
-            fallbackAdManager != null &&
-            fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable)
-        {
-            currentAdManager = fallbackAdManager;
-        }
+       
         if (CheckInit() && IsInternetAvaliable)
         {
+            var currentAdManager = mainAdManager;
+            if (!mainAdManager.IsRewardViedoAvaliable(placement, null) &&
+                fallbackAdManager != null &&
+                fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable)
+            {
+                currentAdManager = fallbackAdManager;
+                // preload the ads for the next show
+                mainAdManager.PreLoadRewardedAd(new string[] { placement });
+            }
             yield return currentAdManager.ShowRewardedAds(placement,(r)=>{
                 result = r;
             });
