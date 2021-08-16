@@ -203,7 +203,8 @@ public class AdFactory : MonoBehaviour
             var currentAdManager = mainAdManager;
             if (!mainAdManager.IsInterstitialAdsAvaliable(placement) &&
                 fallbackAdManager != null &&
-                fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable)
+                fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable &&
+                fallbackAdManager.IsInterstitialAdsAvaliable(placement) )
             {
                 currentAdManager = fallbackAdManager;
                 // preload the ad for the next show
@@ -267,7 +268,8 @@ public class AdFactory : MonoBehaviour
             var currentAdManager = mainAdManager;
             if (!mainAdManager.IsRewardViedoAvaliable(placement, null) &&
                 fallbackAdManager != null &&
-                fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable)
+                fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable&&
+                fallbackAdManager.IsRewardViedoAvaliable(placement, null))
             {
                 currentAdManager = fallbackAdManager;
                 // preload the ads for the next show
