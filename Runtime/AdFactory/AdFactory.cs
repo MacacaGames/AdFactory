@@ -207,7 +207,7 @@ public class AdFactory : MonoBehaviour
             {
                 currentAdManager = fallbackAdManager;
                 // preload the ad for the next show
-                mainAdManager.PreLoadInterstitialAds(placement);
+                // mainAdManager.PreLoadInterstitialAds(placement);
             }
             yield return currentAdManager.ShowInterstitialAds(placement,(r)=>{
                 result = r;
@@ -271,7 +271,7 @@ public class AdFactory : MonoBehaviour
             {
                 currentAdManager = fallbackAdManager;
                 // preload the ads for the next show
-                mainAdManager.PreLoadRewardedAd(new string[] { placement });
+                // mainAdManager.PreLoadRewardedAd(new string[] { placement });
             }
             yield return currentAdManager.ShowRewardedAds(placement,(r)=>{
                 result = r;
