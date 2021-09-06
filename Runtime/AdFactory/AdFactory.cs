@@ -135,8 +135,11 @@ public class AdFactory : MonoBehaviour
             Debug.LogError("AdFactory is not Init");
             return false;
         }
-
+#if UNITY_EDITOR
+        return false;
+#else
         return mainAdManager.ShowBannerAd(placement);
+#endif
     }
 
     public int GetBannerHeight()
@@ -146,8 +149,12 @@ public class AdFactory : MonoBehaviour
             Debug.LogError("AdFactory is not Init");
             return 0;
         }
+#if UNITY_EDITOR
+        return 0;
+#else
+       return mainAdManager.GetBannerHeight();
+#endif
 
-        return mainAdManager.GetBannerHeight();
     }
 
     /// <summary>
@@ -161,8 +168,11 @@ public class AdFactory : MonoBehaviour
             Debug.LogError("AdFactory is not Init");
             return false;
         }
-
+#if UNITY_EDITOR
+        return false;
+#else
         return mainAdManager.HasBannerView();
+#endif
     }
 
     /// <summary>
@@ -177,7 +187,12 @@ public class AdFactory : MonoBehaviour
             return false;
 
         }
-        return mainAdManager.RemoveBannerView();
+#if UNITY_EDITOR
+        return false;
+#else
+       return mainAdManager.RemoveBannerView();
+#endif
+
     }
 
     /// <summary>
