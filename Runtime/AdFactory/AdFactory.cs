@@ -48,11 +48,7 @@ public class AdFactory : MonoBehaviour
     [SerializeField]
     float IsRewardViedoAvaliableLoadedTime = 2f;
     public FallbackHandle fallbackHandle = FallbackHandle.DontFallback;
-    public delegate void AdViewEventAnalysic(string Data);
-    /// <summary>
-    /// 註冊一個事件，該事件將會於 廣告顯示「前」執行
-    /// </summary>
-    public event AdViewEventAnalysic OnAdAnalysic;
+
 
     /// <summary>
     /// 註冊一個事件，該事件將會於 廣告顯示「前」執行
@@ -63,8 +59,33 @@ public class AdFactory : MonoBehaviour
     /// 註冊一個事件，該事件將會於 廣告顯示「後」執行
     /// </summary>
     public Action OnAfterAdShow;
-    public Action<AdType, RewardResult, string> OnAdResult;
+    /// <summary>
+    /// AdType
+    /// Result
+    /// analysic data
+    /// placement
+    /// </summary>
+    public Action<AdType, RewardResult, string, string> OnAdResult;
 
+    /// <summary>
+    /// AdType
+    /// analysic data
+    /// placement
+    /// </summary>
+    public Action<AdType, string, string> OnAdShowSuccess;
+
+    /// <summary>
+    /// AdType
+    /// analysic data
+    /// placement
+    /// </summary>
+    public Action<AdType, string, string> OnAdClick;
+    /// <summary>
+    /// AdType
+    /// analysic data
+    /// placement
+    /// </summary>
+    public Action<AdType, string, string> OnAdRequestToShow;
     public void Init(IAdManager provider)
     {
         if (CheckInit())
@@ -199,12 +220,13 @@ public class AdFactory : MonoBehaviour
     /// 顯示一則插業廣告
     /// </summary>
     /// <returns>一個代表廣告顯示進程的 Coroutine</returns>
-    public Coroutine ShowInterstitialAds(Action<AdFactory.RewardResult> OnFinish, string placement = "")
+    public Coroutine ShowInterstitialAds(Action<AdFactory.RewardResult> OnFinish, string placement = "", string analysicData = "")
     {
-        return StartCoroutine(ShowInterstitialAdsRunner(OnFinish, placement));
+        OnAdRequestToShow?.Invoke(AdType.Interstitial, analysicData, placement);
+        return StartCoroutine(ShowInterstitialAdsRunner(OnFinish, placement, analysicData));
     }
 
-    IEnumerator ShowInterstitialAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement)
+    IEnumerator ShowInterstitialAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement, string analysicData)
     {
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
@@ -238,7 +260,7 @@ public class AdFactory : MonoBehaviour
         OnFinish?.Invoke(result);
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
-        OnAdResult?.Invoke(AdType.Interstitial, result, placement);
+        OnAdResult?.Invoke(AdType.Interstitial, result, analysicData, placement);
     }
     public bool IsInterstitialAdsAvaliable(string placement, AdManagerType adManagerType = AdManagerType.Main)
     {
@@ -256,17 +278,18 @@ public class AdFactory : MonoBehaviour
         return currentAdManager.IsInterstitialAdsAvaliable(placement);
 #endif
     }
+    
     /// <summary>
     /// 顯示一則獎勵廣告
     /// </summary>
     /// <returns>一個代表廣告顯示進程的 Coroutine</returns>
     public Coroutine ShowRewardedAds(Action<AdFactory.RewardResult> OnFinish, string placement = "", string analysicData = "")
     {
-        OnAdAnalysic?.Invoke(analysicData);
-        return StartCoroutine(ShowRewardedAdsRunner(OnFinish, placement));
+        OnAdRequestToShow?.Invoke(AdType.Reward, analysicData, placement);
+        return StartCoroutine(ShowRewardedAdsRunner(OnFinish, placement, analysicData));
     }
 
-    IEnumerator ShowRewardedAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement)
+    IEnumerator ShowRewardedAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement, string analysicData)
     {
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
@@ -303,7 +326,7 @@ public class AdFactory : MonoBehaviour
         OnFinish?.Invoke(result);
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
-        OnAdResult?.Invoke(AdType.Reward, result, placement);
+        OnAdResult?.Invoke(AdType.Interstitial, result, analysicData, placement);
     }
 
     public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null, AdManagerType adManagerType = AdManagerType.Main)
