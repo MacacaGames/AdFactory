@@ -228,6 +228,7 @@ public class AdFactory : MonoBehaviour
 
     IEnumerator ShowInterstitialAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement, string analysicData)
     {
+        lastIntertistialAdAnalysicData = analysicData;
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
         yield return new WaitForSecondsRealtime(1f);
@@ -262,6 +263,11 @@ public class AdFactory : MonoBehaviour
         OnAfterAdShow?.Invoke();
         OnAdResult?.Invoke(AdType.Interstitial, result, analysicData, placement);
     }
+    string lastIntertistialAdAnalysicData;
+    public void DoOnIntertistialAdClick(string placement)
+    {
+        OnAdClick?.Invoke(AdType.Interstitial, lastIntertistialAdAnalysicData, placement);
+    }
     public bool IsInterstitialAdsAvaliable(string placement, AdManagerType adManagerType = AdManagerType.Main)
     {
 
@@ -278,7 +284,7 @@ public class AdFactory : MonoBehaviour
         return currentAdManager.IsInterstitialAdsAvaliable(placement);
 #endif
     }
-    
+
     /// <summary>
     /// 顯示一則獎勵廣告
     /// </summary>
@@ -291,6 +297,7 @@ public class AdFactory : MonoBehaviour
 
     IEnumerator ShowRewardedAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement, string analysicData)
     {
+        lastRewardAdAnalysicData= analysicData;
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
 
@@ -327,6 +334,11 @@ public class AdFactory : MonoBehaviour
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
         OnAdResult?.Invoke(AdType.Reward, result, analysicData, placement);
+    }
+    string lastRewardAdAnalysicData;
+    public void DoOnRewardAdClick(string placement)
+    {
+        OnAdClick?.Invoke(AdType.Reward, lastRewardAdAnalysicData, placement);
     }
 
     public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null, AdManagerType adManagerType = AdManagerType.Main)
