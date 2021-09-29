@@ -326,7 +326,7 @@ public class AdFactory : MonoBehaviour
         OnFinish?.Invoke(result);
         //關閉讀取，如果有的話
         OnAfterAdShow?.Invoke();
-        OnAdResult?.Invoke(AdType.Interstitial, result, analysicData, placement);
+        OnAdResult?.Invoke(AdType.Reward, result, analysicData, placement);
     }
 
     public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null, AdManagerType adManagerType = AdManagerType.Main)
