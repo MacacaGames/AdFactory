@@ -162,7 +162,23 @@ public class AdFactory : MonoBehaviour
         return mainAdManager.ShowBannerAd(placement);
 #endif
     }
-
+    /// <summary>
+    /// 請求並顯示橫幅廣告
+    /// </summary>
+    /// <returns>true 代表請求成功, false 代表請求失敗或是或是廣告提供者不支援橫幅廣告</returns>
+    public bool LoadBannerAd()
+    {
+        if (!CheckInit())
+        {
+            Debug.LogError("AdFactory is not Init");
+            return false;
+        }
+#if UNITY_EDITOR
+        return false;
+#else
+        return mainAdManager.LoadBannerAd();
+#endif
+    }
     public int GetBannerHeight()
     {
         if (!CheckInit())
@@ -297,7 +313,7 @@ public class AdFactory : MonoBehaviour
 
     IEnumerator ShowRewardedAdsRunner(Action<AdFactory.RewardResult> OnFinish, string placement, string analysicData)
     {
-        lastRewardAdAnalysicData= analysicData;
+        lastRewardAdAnalysicData = analysicData;
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
 
@@ -428,6 +444,7 @@ public interface IAdManager
     /// </summary>
     /// <returns>true 代表請求成功, false 代表請求失敗或是 VIP 用戶或是還沒玩超過三次</returns>
     bool ShowBannerAd(string placement);
+    bool LoadBannerAd();
     bool HasBannerView();
     bool RemoveBannerView();
     int GetBannerHeight();
