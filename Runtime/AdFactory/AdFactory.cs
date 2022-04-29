@@ -86,6 +86,13 @@ public class AdFactory : MonoBehaviour
     /// placement
     /// </summary>
     public Action<AdType, string, string> OnAdRequestToShow;
+
+    /// <summary>
+    /// AdType
+    /// analysic data
+    /// placement
+    /// </summary>
+    public Action<AdType, string, string> OnAdImpress;
     public void Init(IAdManager provider)
     {
         if (CheckInit())
@@ -284,6 +291,10 @@ public class AdFactory : MonoBehaviour
     {
         OnAdClick?.Invoke(AdType.Interstitial, lastIntertistialAdAnalysicData, placement);
     }
+    public void DoOnIntertistialAdImpress(string placement)
+    {
+        OnAdImpress?.Invoke(AdType.Interstitial, lastIntertistialAdAnalysicData, placement);
+    }
     public bool IsInterstitialAdsAvaliable(string placement, AdManagerType adManagerType = AdManagerType.Main)
     {
 
@@ -355,6 +366,10 @@ public class AdFactory : MonoBehaviour
     public void DoOnRewardAdClick(string placement)
     {
         OnAdClick?.Invoke(AdType.Reward, lastRewardAdAnalysicData, placement);
+    }
+    public void DoOnRewardAdImpress(string placement)
+    {
+        OnAdImpress?.Invoke(AdType.Reward, lastRewardAdAnalysicData, placement);
     }
 
     public bool IsRewardViedoAvaliabale(string placement = "", System.Action<bool> OnAdLoaded = null, AdManagerType adManagerType = AdManagerType.Main)
