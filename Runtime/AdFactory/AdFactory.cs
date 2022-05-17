@@ -49,6 +49,7 @@ public class AdFactory : MonoBehaviour
     float IsRewardViedoAvaliableLoadedTime = 2f;
     public FallbackHandle fallbackHandle = FallbackHandle.DontFallback;
 
+    public static float FixedLoadingTime = 1f;
 
     /// <summary>
     /// 註冊一個事件，該事件將會於 廣告顯示「前」執行
@@ -254,7 +255,7 @@ public class AdFactory : MonoBehaviour
         lastIntertistialAdAnalysicData = analysicData;
         //顯示讀取，如果有的話
         OnBeforeAdShow?.Invoke();
-        yield return new WaitForSecondsRealtime(1f);
+        yield return new WaitForSecondsRealtime(FixedLoadingTime);
         AdFactory.RewardResult result = AdFactory.RewardResult.Faild;
 #if UNITY_EDITOR
         result = EditorTestResult;
@@ -277,7 +278,7 @@ public class AdFactory : MonoBehaviour
         }
         else
         {
-            yield return new WaitForSecondsRealtime(1.5f);
+            yield return new WaitForSecondsRealtime(FixedLoadingTime);
            Debug.Log("Video is not ready please check your network or try again later.");
         }
 #endif
@@ -329,7 +330,7 @@ public class AdFactory : MonoBehaviour
         OnBeforeAdShow?.Invoke();
 
 
-        yield return new WaitForSecondsRealtime(1f);
+        yield return new WaitForSecondsRealtime(FixedLoadingTime);
         AdFactory.RewardResult result = AdFactory.RewardResult.Faild;
 #if UNITY_EDITOR
         result = EditorTestResult;
@@ -353,7 +354,7 @@ public class AdFactory : MonoBehaviour
         }
         else
         {
-            yield return new WaitForSecondsRealtime(1f);
+            yield return new WaitForSecondsRealtime(FixedLoadingTime);
            Debug.Log("Video is not ready please check your network or try again later.");
         }
 #endif
