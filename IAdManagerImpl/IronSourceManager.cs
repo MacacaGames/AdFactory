@@ -28,25 +28,25 @@ public class IronSourceManager : IAdManager
         Debug.Log("unity-script: IronSource.Agent.init");
         IronSource.Agent.init(_appKey);
         #region Interstitial
-        IronSourceEvents.onInterstitialAdReadyEvent += InterstitialAdReadyEvent;
-        IronSourceEvents.onInterstitialAdLoadFailedEvent += InterstitialAdLoadFailedEvent;
-        IronSourceEvents.onInterstitialAdShowSucceededEvent += InterstitialAdShowSucceededEvent;
-        IronSourceEvents.onInterstitialAdShowFailedEvent += InterstitialAdShowFailedEvent;
-        IronSourceEvents.onInterstitialAdClickedEvent += InterstitialAdClickedEvent;
-        IronSourceEvents.onInterstitialAdOpenedEvent += InterstitialAdOpenedEvent;
-        IronSourceEvents.onInterstitialAdClosedEvent += InterstitialAdClosedEvent;
+        IronSourceInterstitialEvents.onAdReadyEvent += InterstitialAdReadyEvent;
+        IronSourceInterstitialEvents.onAdLoadFailedEvent += InterstitialAdLoadFailedEvent;
+        IronSourceInterstitialEvents.onAdShowSucceededEvent += InterstitialAdShowSucceededEvent;
+        IronSourceInterstitialEvents.onAdShowFailedEvent += InterstitialAdShowFailedEvent;
+        IronSourceInterstitialEvents.onAdClickedEvent += InterstitialAdClickedEvent;
+        IronSourceInterstitialEvents.onAdOpenedEvent += InterstitialAdOpenedEvent;
+        IronSourceInterstitialEvents.onAdClosedEvent += InterstitialAdClosedEvent;
         #endregion
 
         #region Rewarded
-        IronSourceEvents.onRewardedVideoAdOpenedEvent += RewardedVideoAdOpenedEvent;
-        IronSourceEvents.onRewardedVideoAdClosedEvent += RewardedVideoAdClosedEvent;
-        IronSourceEvents.onRewardedVideoAvailabilityChangedEvent += RewardedVideoAvailabilityChangedEvent;
-        IronSourceEvents.onRewardedVideoAdStartedEvent += RewardedVideoAdStartedEvent;
-        IronSourceEvents.onRewardedVideoAdEndedEvent += RewardedVideoAdEndedEvent;
-        IronSourceEvents.onRewardedVideoAdRewardedEvent += RewardedVideoAdRewardedEvent;
-        IronSourceEvents.onRewardedVideoAdShowFailedEvent += RewardedVideoAdShowFailedEvent;
-        IronSourceEvents.onRewardedVideoAdClickedEvent += RewardedVideoAdClickedEvent;
-
+        IronSourceRewardedVideoEvents.onAdOpenedEvent += RewardedVideoAdOpenedEvent;
+        IronSourceRewardedVideoEvents.onAdClosedEvent += RewardedVideoAdClosedEvent;
+        IronSourceRewardedVideoEvents.onAdAvailableEvent += RewardedVideoOnAvailableEvent;
+        IronSourceRewardedVideoEvents.onAdUnavailableEvent += RewardedVideoOnUnavailableEvent;
+        IronSourceRewardedVideoEvents.onAdRewardedEvent += RewardedVideoAdRewardedEvent;
+        IronSourceRewardedVideoEvents.onAdShowFailedEvent += RewardedVideoAdShowFailedEvent;
+        IronSourceRewardedVideoEvents.onAdClickedEvent += RewardedVideoAdClickedEvent;
+        IronSourceRewardedVideoEvents.onAdLoadFailedEvent += RewardedVideoAdLoadFailedEvent;
+        IronSourceRewardedVideoEvents.onAdReadyEvent += RewardedVideoAdReadyEvent;
         #endregion
     }
 
@@ -59,6 +59,10 @@ public class IronSourceManager : IAdManager
     {
         Debug.Log("unity-script: OnApplicationPause = " + isPaused);
         IronSource.Agent.onApplicationPause(isPaused);
+        if (!isPaused)
+        {
+            ServiceAPI.TenjinConnect();
+        }
     }
 
 
@@ -68,6 +72,12 @@ public class IronSourceManager : IAdManager
         Debug.Log("IronSource doesn't support Bannse");
         return false;
     }
+
+    public bool LoadBannerAd()
+    {
+        return false;
+    }
+
     public int GetBannerHeight()
     {
         return 0;
@@ -181,7 +191,7 @@ public class IronSourceManager : IAdManager
         IronSource.Agent.loadInterstitial();
     }
 
-    void InterstitialAdReadyEvent()
+    void InterstitialAdReadyEvent(IronSourceAdInfo info)
     {
         loadState_interstitialAds = AdFactory.AdsLoadState.Loaded;
         isInterstitialLoading = false;
@@ -194,28 +204,28 @@ public class IronSourceManager : IAdManager
         Debug.Log("unity-script: I got InterstitialAdLoadFailedEvent, code: " + error.getCode() + ", description : " + error.getDescription());
     }
 
-    void InterstitialAdShowSucceededEvent()
+    void InterstitialAdShowSucceededEvent(IronSourceAdInfo info)
     {
         Debug.Log("unity-script: I got InterstitialAdShowSucceededEvent");
     }
 
-    void InterstitialAdShowFailedEvent(IronSourceError error)
+    void InterstitialAdShowFailedEvent(IronSourceError error,IronSourceAdInfo info)
     {
         Debug.Log("unity-script: I got InterstitialAdShowFailedEvent, code :  " + error.getCode() + ", description : " + error.getDescription());
         isInterstitialShowFaild = true;
     }
 
-    void InterstitialAdClickedEvent()
+    void InterstitialAdClickedEvent(IronSourceAdInfo info)
     {
         Debug.Log("unity-script: I got InterstitialAdClickedEvent");
     }
 
-    void InterstitialAdOpenedEvent()
+    void InterstitialAdOpenedEvent(IronSourceAdInfo info)
     {
         Debug.Log("unity-script: I got InterstitialAdOpenedEvent");
     }
 
-    void InterstitialAdClosedEvent()
+    void InterstitialAdClosedEvent(IronSourceAdInfo info)
     {
         isInterstitialAdClose = true;
         Debug.Log("unity-script: I got InterstitialAdClosedEvent");
@@ -241,46 +251,51 @@ public class IronSourceManager : IAdManager
         return IronSource.Agent.isRewardedVideoAvailable();
     }
 
-    void RewardedVideoAvailabilityChangedEvent(bool canShowAd)
+    void RewardedVideoOnAvailableEvent(IronSourceAdInfo info)
     {
-        Debug.Log("unity-script: I got RewardedVideoAvailabilityChangedEvent, value = " + canShowAd);
-        OnAdLoaded?.Invoke(canShowAd);
+        Debug.Log("unity-script: I got RewardedVideoOnAvailableEvent");
+        OnAdLoaded?.Invoke(true);
+    }
+    void RewardedVideoOnUnavailableEvent()
+    {
+        Debug.Log("unity-script: I got RewardedVideoOnUnavailableEvent, value = ");
     }
 
-    void RewardedVideoAdOpenedEvent()
+    void RewardedVideoAdOpenedEvent(IronSourceAdInfo info)
     {
         Debug.Log("unity-script: I got RewardedVideoAdOpenedEvent");
     }
 
-    void RewardedVideoAdRewardedEvent(IronSourcePlacement ssp)
+    void RewardedVideoAdRewardedEvent(IronSourcePlacement ssp,IronSourceAdInfo info)
     {
         Debug.Log("unity-script: I got RewardedVideoAdRewardedEvent, amount = " + ssp.getRewardAmount() + " name = " + ssp.getRewardName());
         isRewarded = true;
     }
 
-    void RewardedVideoAdClosedEvent()
+    void RewardedVideoAdClosedEvent(IronSourceAdInfo info)
     {
         Debug.Log("unity-script: I got RewardedVideoAdClosedEvent");
         isRewardAdClose = true;
     }
 
-    void RewardedVideoAdStartedEvent()
+    void RewardedVideoAdLoadFailedEvent(IronSourceError error)
     {
-        Debug.Log("unity-script: I got RewardedVideoAdStartedEvent");
+        Debug.Log("unity-script: I got RewardedVideoAdLoadFailedEvent, code :  " + error.getCode() + ", description : " + error.getDescription());
     }
 
-    void RewardedVideoAdEndedEvent()
+    void RewardedVideoAdReadyEvent(IronSourceAdInfo info)
     {
-        Debug.Log("unity-script: I got RewardedVideoAdEndedEvent");
+        Debug.Log("unity-script: I got RewardedVideoAdReadyEvent");
     }
+    
 
-    void RewardedVideoAdShowFailedEvent(IronSourceError error)
+    void RewardedVideoAdShowFailedEvent(IronSourceError error,IronSourceAdInfo info)
     {
         isRewardShowFaild = true;
         Debug.Log("unity-script: I got RewardedVideoAdShowFailedEvent, code :  " + error.getCode() + ", description : " + error.getDescription());
     }
 
-    void RewardedVideoAdClickedEvent(IronSourcePlacement ssp)
+    void RewardedVideoAdClickedEvent(IronSourcePlacement ssp,IronSourceAdInfo info)
     {
         Debug.Log("unity-script: I got RewardedVideoAdClickedEvent, name = " + ssp.getRewardName());
     }
