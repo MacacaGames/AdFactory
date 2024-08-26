@@ -239,12 +239,12 @@ public class AdMobManager : IAdManager
             CheckingLoadSuccess(rewardedAd, OnAdLoaded);
         };
 
-        rewardedAd.OnAdFailedToLoad -= (object sender, AdErrorEventArgs e) =>
+        rewardedAd.OnAdFailedToLoad -= (object sender, AdFailedToLoadEventArgs e) =>
         {
             CheckingLoadFaild(rewardedAd, OnAdLoaded);
         };
 
-        rewardedAd.OnAdFailedToLoad += (object sender, AdErrorEventArgs e) =>
+        rewardedAd.OnAdFailedToLoad += (object sender, AdFailedToLoadEventArgs e) =>
         {
             CheckingLoadFaild(rewardedAd, OnAdLoaded);
         };
@@ -297,7 +297,7 @@ public class AdMobManager : IAdManager
         MonoBehaviour.print("OnAdLoaded event received");
     }
 
-    private void OnAdFailedToLoad(object sender, AdErrorEventArgs e)
+    private void OnAdFailedToLoad(object sender, AdFailedToLoadEventArgs e)
     {
         MonoBehaviour.print("OnAdFailedToLoad event received ,msg : {e.Message}");
         RemoveRewardAdByValue(sender as RewardedAd);
@@ -334,6 +334,12 @@ public class AdMobManager : IAdManager
     {
         MonoBehaviour.print("OnAdClosed event received");
         isRewardAdClose = true;
+    }
+
+    static GoogleMobileAds.Api.ServerSideVerificationOptions options;
+    public static void SetCustomData(GoogleMobileAds.Api.ServerSideVerificationOptions _options)
+    {
+        options = _options;
     }
 
     bool isRewardAdClose = false;
@@ -384,6 +390,7 @@ public class AdMobManager : IAdManager
     SHOW:
         if (rewardedAd.IsLoaded())
         {
+            rewardedAd.SetServerSideVerificationOptions(options);
             rewardedAd.Show();
         }
         else
@@ -425,6 +432,11 @@ public class AdMobManager : IAdManager
         {
             CreateAndLoadRewardedAd(item);
         }
+    }
+
+    public bool LoadBannerAd()
+    {
+        return false;
     }
 
     #endregion
