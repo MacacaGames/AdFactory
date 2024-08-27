@@ -48,6 +48,8 @@ public class IronSourceManager : IAdManager
         IronSourceRewardedVideoEvents.onAdLoadFailedEvent += RewardedVideoAdLoadFailedEvent;
         IronSourceRewardedVideoEvents.onAdReadyEvent += RewardedVideoAdReadyEvent;
         #endregion
+        
+        IronSourceEvents.onImpressionDataReadyEvent += ImpressionDataReadyEvent;
     }
 
     public void Destroy()
@@ -115,7 +117,7 @@ public class IronSourceManager : IAdManager
             PreloadInterstitial(id);
 
             float wait = 0;
-            while (wait < 2)
+            while (wait < 5)
             {
                 wait += Time.deltaTime;
                 if (loadState_interstitialAds == AdFactory.AdsLoadState.Loaded)
@@ -382,5 +384,22 @@ public class IronSourceManager : IAdManager
     }
 
     #endregion
+    private void ImpressionDataReadyEvent(IronSourceImpressionData impressionData)
+    {
+        Debug.Log("unity-script: ImpressionDataReadyEvent impressionData = " + impressionData);
+        if (impressionData != null)
+        {
+            Firebase.Analytics.Parameter[] AdParameters =
+            {
+                new Firebase.Analytics.Parameter("ad_platform", "ironSource"),
+                new Firebase.Analytics.Parameter("ad_source", impressionData.adNetwork),
+                new Firebase.Analytics.Parameter("ad_unit_name", impressionData.adUnit),
+                new Firebase.Analytics.Parameter("ad_format", impressionData.instanceName),
+                new Firebase.Analytics.Parameter("currency", "USD"),
+                new Firebase.Analytics.Parameter("value", impressionData.revenue.Value)
+            };
+            Firebase.Analytics.FirebaseAnalytics.LogEvent("custom_ad_impression", AdParameters);
+        }
+    }
 }
 
