@@ -49,6 +49,14 @@ public class IronSourceManager : IAdManager
         IronSourceRewardedVideoEvents.onAdReadyEvent += RewardedVideoAdReadyEvent;
         #endregion
         
+        #region Banner
+        IronSourceBannerEvents.onAdLoadedEvent += BannerOnAdLoadedEvent;
+        IronSourceBannerEvents.onAdLoadFailedEvent += BannerOnAdLoadFailedEvent;
+        IronSourceBannerEvents.onAdClickedEvent += BannerOnAdClickedEvent;
+        IronSourceBannerEvents.onAdScreenPresentedEvent += BannerOnAdScreenPresentedEvent;
+        IronSourceBannerEvents.onAdScreenDismissedEvent += BannerOnAdScreenDismissedEvent;
+        IronSourceBannerEvents.onAdLeftApplicationEvent += BannerOnAdLeftApplicationEvent;
+        #endregion
         IronSourceEvents.onImpressionDataReadyEvent += ImpressionDataReadyEvent;
     }
 
@@ -69,15 +77,30 @@ public class IronSourceManager : IAdManager
 
 
     #region BannerAd
+
+    private bool isBannerShowing = false;
+    private bool isBannerLoadSuccess = false;
     public bool ShowBannerAd(string placement)
     {
-        Debug.Log("IronSource doesn't support Bannse");
-        return false;
+        if (isBannerShowing) return true;
+        
+        if (isBannerLoadSuccess)
+        {
+            IronSource.Agent.displayBanner();
+            isBannerShowing = true;
+        }
+        else
+        {
+            LoadBannerAd();
+        }
+        
+        return true;
     }
 
     public bool LoadBannerAd()
     {
-        return false;
+        IronSource.Agent.loadBanner(IronSourceBannerSize.SMART, IronSourceBannerPosition.BOTTOM);
+        return true;
     }
 
     public int GetBannerHeight()
@@ -86,12 +109,47 @@ public class IronSourceManager : IAdManager
     }
     public bool HasBannerView()
     {
-        return false;
+        return isBannerShowing;
     }
     public bool RemoveBannerView()
     {
+        IronSource.Agent.hideBanner();
+        isBannerShowing = false;
+        return true;
+    }
+    
+    void BannerOnAdLoadedEvent(IronSourceAdInfo adInfo)
+    {
+        isBannerShowing = true;
+        isBannerLoadSuccess = true;
+        Debug.Log("unity-script: I got BannerOnAdLoadedEvent");
+    }
 
-        return false;
+    void BannerOnAdLoadFailedEvent(IronSourceError error)
+    {
+        isBannerShowing = false;
+        isBannerLoadSuccess = false;
+        Debug.Log("unity-script: I got InterstitialAdLoadFailedEvent, code: " + error.getCode() + ", description : " + error.getDescription());
+    }
+    
+    void BannerOnAdClickedEvent(IronSourceAdInfo adInfo) 
+    {
+        Debug.Log("unity-script: I got BannerOnAdClickedEvent");
+    }
+
+    void BannerOnAdScreenPresentedEvent(IronSourceAdInfo adInfo) 
+    {
+        Debug.Log("unity-script: I got BannerOnAdScreenPresentedEvent");
+    }
+
+    void BannerOnAdScreenDismissedEvent(IronSourceAdInfo adInfo) 
+    {
+        Debug.Log("unity-script: I got BannerOnAdScreenDismissedEvent");
+    }
+
+    void BannerOnAdLeftApplicationEvent(IronSourceAdInfo adInfo) 
+    {
+        Debug.Log("unity-script: I got BannerOnAdLeftApplicationEvent");
     }
     #endregion
     #region InterstitialAd
@@ -402,4 +460,3 @@ public class IronSourceManager : IAdManager
         }
     }
 }
-
