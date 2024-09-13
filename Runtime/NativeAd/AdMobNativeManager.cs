@@ -1,4 +1,5 @@
-﻿using System;
+#if AdFactory_Admob_Native
+using System;
 using System.Collections.Generic;
 using GoogleMobileAds.Api;
 using GoogleMobileAds.Api.AdManager;
@@ -70,3 +71,4 @@ public class AdMobNativeManager
         }
     }
 }
+#endif
