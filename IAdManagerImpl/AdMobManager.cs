@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using GoogleMobileAds.Api;
 using UnityEngine;
 
-using System.Linq;
 public class AdMobManager : IAdManager
 {
     static string _admobAppId;
@@ -31,7 +30,9 @@ public class AdMobManager : IAdManager
     {
 
     }
+
     #region BannerAd
+
     BannerView bannerView;
     public bool ShowBannerAd(string placement)
     {
@@ -39,11 +40,12 @@ public class AdMobManager : IAdManager
         // Create a 320x50 banner at the top of the screen.
         bannerView = new BannerView(adUnitId, AdSize.SmartBanner, AdPosition.Bottom);
         // Create an empty ad request.
-        AdRequest request = new AdRequest.Builder().Build();
+        AdRequest request = new AdRequest();
         // Load the banner with the request.
         bannerView.LoadAd(request);
         return true;
     }
+
     public int GetBannerHeight()
     {
 #if UNITY_IOS
@@ -66,35 +68,42 @@ public class AdMobManager : IAdManager
             return 90 * Mathf.RoundToInt(Screen.dpi / 160);
         }
     }
+
     public bool HasBannerView()
     {
         return bannerView == null ? false : true;
     }
+
     public bool RemoveBannerView()
     {
         if (bannerView == null) return false;
         bannerView.Hide();
         return true;
     }
+
+    public bool LoadBannerAd()
+    {
+        return false;
+    }
+
     #endregion
+
     #region InterstitialAd
+
     public AdFactory.AdsLoadState loadState_interstitialAds = AdFactory.AdsLoadState.Exception;
     bool isInterstitialAdClose = false;
-    InterstitialAd interstitial;
+    private InterstitialAd interstitialAd;
     bool isShowedInterstitialAds;
 
     public IEnumerator ShowInterstitialAds(string placement, Action<AdFactory.RewardResult> callback)
     {
         string id = _defaultIterstitialPlacement;
         AdFactory.RewardResult result = AdFactory.RewardResult.Error;
-
         isInterstitialAdClose = false;
         int try_preload_times = 0;
 
-        //等一秒，騙使用者很忙
         yield return new WaitForSecondsRealtime(1f);
 
-        //沒有讀到的情況
         if (loadState_interstitialAds != AdFactory.AdsLoadState.Loaded)
         {
             while (try_preload_times < 2)
@@ -118,14 +127,12 @@ public class AdMobManager : IAdManager
             goto FINISH;
         }
 
-    SHOW:
-        if (interstitial != null)
+        SHOW:
+        if (interstitialAd != null && interstitialAd.CanShowAd())
         {
-            if (interstitial.IsLoaded())
-            {
-                result = AdFactory.RewardResult.Success;
-                _ShowInterstitialAds();
-            }
+            result = AdFactory.RewardResult.Success;
+            interstitialAd.Show();
+            isShowedInterstitialAds = true;
         }
 
         while (!isInterstitialAdClose)
@@ -133,11 +140,9 @@ public class AdMobManager : IAdManager
             yield return null;
         }
 
-    FINISH:
+        FINISH:
         PreloadInterstitial(id);
-
-        if (callback != null)
-            callback(result);
+        callback?.Invoke(result);
     }
     public void PreLoadInterstitialAds(string placements)
     {
@@ -145,69 +150,57 @@ public class AdMobManager : IAdManager
     }
     public bool IsInterstitialAdsAvaliable(string placement)
     {
-        if (interstitial == null)
-        {
-            return false;
-        }
-        return interstitial.IsLoaded();
+        return interstitialAd != null && interstitialAd.CanShowAd();
     }
-    void _ShowInterstitialAds()
-    {
-        if (interstitial.IsLoaded())
-        {
-            interstitial.Show();
-            isShowedInterstitialAds = true;
-        }
-        else
-        {
-            Debug.Log("Cannot show interstitialAds, Handler is loaded, but somehow IsLoaded is still not loaded.");
-        }
-    }
+
     void PreloadInterstitial(string id)
     {
         DestroyInterstitial();
-        interstitial = new InterstitialAd(id);
 
-        interstitial.OnAdLoaded += HandleOnInterstitialLoaded;
-        interstitial.OnAdFailedToLoad += HandleOnInterstitialFailedToLoad;
-        interstitial.OnAdClosed += HandleOnInterstitialClosed;
-        // Create an empty ad request.
-        AdRequest request = new AdRequest.Builder().Build();
-        // Load the interstitial with the request.
-        interstitial.LoadAd(request);
-    }
-    void HandleOnInterstitialLoaded(object sender, EventArgs args)
-    {
-        // Handle the ad loaded event.
-        loadState_interstitialAds = AdFactory.AdsLoadState.Loaded;
-    }
+        InterstitialAd.Load(id, new AdRequest(), (InterstitialAd ad, LoadAdError error) =>
+        {
+            if (error != null)
+            {
+                Debug.LogError("Interstitial ad failed to load: " + error);
+                loadState_interstitialAds = AdFactory.AdsLoadState.Failed;
+                return;
+            }
 
-    void HandleOnInterstitialFailedToLoad(object sender, EventArgs args)
-    {
-        loadState_interstitialAds = AdFactory.AdsLoadState.Failed;
+            interstitialAd = ad;
+            loadState_interstitialAds = AdFactory.AdsLoadState.Loaded;
+            RegisterInterstitialEvents(ad);
+        });
     }
 
-    void HandleOnInterstitialClosed(object sender, EventArgs args)
+    private void RegisterInterstitialEvents(InterstitialAd ad)
     {
-        isInterstitialAdClose = true;
-        loadState_interstitialAds = AdFactory.AdsLoadState.Complete;
+        ad.OnAdPaid += (AdValue adValue) =>
+            Debug.Log($"Interstitial ad paid {adValue.Value} {adValue.CurrencyCode}");
+        ad.OnAdClicked += () =>
+            Debug.Log("Interstitial ad clicked.");
+        ad.OnAdImpressionRecorded += () =>
+            Debug.Log("Interstitial ad impression recorded.");
+        ad.OnAdFullScreenContentOpened += () =>
+            Debug.Log("Interstitial ad full screen content opened.");
+        ad.OnAdFullScreenContentClosed += () =>
+        {
+            isInterstitialAdClose = true; loadState_interstitialAds = AdFactory.AdsLoadState.Complete;
+        };
+        ad.OnAdFullScreenContentFailed += (AdError error) =>
+            Debug.LogError("Interstitial ad failed to show: " + error);
     }
 
     void DestroyInterstitial()
     {
-        if (interstitial == null)
+        if (interstitialAd != null)
         {
-            return;
+            interstitialAd.Destroy();
+            interstitialAd = null;
         }
-        interstitial.OnAdLoaded -= HandleOnInterstitialLoaded;
-        interstitial.OnAdFailedToLoad -= HandleOnInterstitialFailedToLoad;
-        interstitial.OnAdClosed -= HandleOnInterstitialClosed;
-        interstitial.Destroy();
     }
 
-
-
     #endregion
+
     #region RewardedAd
 
     static Dictionary<string, RewardedAd> rewardAdDict = new Dictionary<string, RewardedAd>();
@@ -223,207 +216,122 @@ public class AdMobManager : IAdManager
         {
             placement = _defaultRewaredPlacement;
         }
-        RewardedAd rewardedAd = null;
-        if (!rewardAdDict.TryGetValue(placement, out rewardedAd))
+
+        if (!rewardAdDict.TryGetValue(placement, out RewardedAd rewardedAd))
         {
             rewardedAd = CreateAndLoadRewardedAd(placement);
         }
 
-        rewardedAd.OnAdLoaded -= (object sender, EventArgs e) =>
-        {
-            CheckingLoadSuccess(rewardedAd, OnAdLoaded);
-        };
-
-        rewardedAd.OnAdLoaded += (object sender, EventArgs e) =>
-        {
-            CheckingLoadSuccess(rewardedAd, OnAdLoaded);
-        };
-
-        rewardedAd.OnAdFailedToLoad -= (object sender, AdFailedToLoadEventArgs e) =>
-        {
-            CheckingLoadFaild(rewardedAd, OnAdLoaded);
-        };
-
-        rewardedAd.OnAdFailedToLoad += (object sender, AdFailedToLoadEventArgs e) =>
-        {
-            CheckingLoadFaild(rewardedAd, OnAdLoaded);
-        };
-
-        return rewardedAd.IsLoaded();
-    }
-    void CheckingLoadSuccess(RewardedAd rewardedAd, System.Action<bool> OnAdLoaded)
-    {
-        OnAdLoaded?.Invoke(true);
+        return rewardedAd.CanShowAd();
     }
 
-    void CheckingLoadFaild(RewardedAd rewardedAd, System.Action<bool> OnAdLoaded)
-    {
-        OnAdLoaded?.Invoke(false);
-        RemoveRewardAdByValue(rewardedAd);
-    }
+    bool isRewardAdClose = false;
+    bool isRewarded = false;
 
     public RewardedAd CreateAndLoadRewardedAd(string placement)
     {
-        var rewardedAd = new RewardedAd(placement);
-        // Called when an ad request has successfully loaded.
-        rewardedAd.OnAdLoaded += OnAdLoaded;
-        // Called when an ad request failed to load.
-        rewardedAd.OnAdFailedToLoad += OnAdFailedToLoad;
-        // Called when an ad is shown.
-        rewardedAd.OnAdOpening += OnAdOpening;
-        // Called when an ad request failed to show.
-        rewardedAd.OnAdFailedToShow += OnAdFailedToShow;
-        // Called when the user should be rewarded for interacting with the ad.
-        rewardedAd.OnUserEarnedReward += OnUserEarnedReward;
-        // Called when the ad is closed.
-        rewardedAd.OnAdClosed += OnAdClosed;
+        RewardedAd loadRewardedAd = null;
 
-        if (rewardAdDict.ContainsKey(placement))
+        if (rewardAdDict.TryGetValue(placement, out RewardedAd existingAd))
         {
-            rewardAdDict[placement] = rewardedAd;
+            UnregisterRewardedAdEvents(existingAd);
+            rewardAdDict.Remove(placement);
+        }
+
+        RewardedAd.Load(placement, new AdRequest(), (RewardedAd ad, LoadAdError error) =>
+        {
+            if (error != null)
+            {
+                Debug.LogError("Rewarded ad failed to load with error: " + error);
+                return;
+            }
+
+            rewardAdDict[placement] = ad;
+            RegisterRewardedAdEvents(ad);
+            loadRewardedAd = ad;
+        });
+
+        return loadRewardedAd;
+    }
+
+    private void RegisterRewardedAdEvents(RewardedAd ad)
+    {
+        ad.OnAdPaid += HandleOnAdPaid;
+        ad.OnAdClicked += HandleOnAdClicked;
+        ad.OnAdFullScreenContentOpened += HandleOnAdOpened;
+        ad.OnAdFullScreenContentClosed += HandleOnAdClosed;
+        ad.OnAdFullScreenContentFailed += HandleOnAdFailedToShow;
+    }
+
+    private void UnregisterRewardedAdEvents(RewardedAd ad)
+    {
+        ad.OnAdPaid -= HandleOnAdPaid;
+        ad.OnAdClicked -= HandleOnAdClicked;
+        ad.OnAdFullScreenContentOpened -= HandleOnAdOpened;
+        ad.OnAdFullScreenContentClosed -= HandleOnAdClosed;
+        ad.OnAdFullScreenContentFailed -= HandleOnAdFailedToShow;
+    }
+
+    private void HandleOnAdPaid(AdValue adValue)
+    {
+    }
+
+    private void HandleOnAdClicked()
+    {
+        Debug.Log("Rewarded ad clicked.");
+    }
+
+    private void HandleOnAdOpened()
+    {
+        Debug.Log("Rewarded ad full screen content opened.");
+    }
+
+    private void HandleOnAdClosed()
+    {
+        Debug.Log("Rewarded ad closed.");
+        isRewardAdClose = true;
+    }
+
+    private void HandleOnAdFailedToShow(AdError error)
+    {
+        Debug.LogError("Rewarded ad failed to show with error: " + error);
+    }
+
+    public IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> OnFinish)
+    {
+        AdFactory.RewardResult result = AdFactory.RewardResult.Error;
+        isRewardAdClose = false;
+        isRewarded = false;
+
+        if (rewardAdDict.TryGetValue(placement, out RewardedAd rewardedAd) && rewardedAd.CanShowAd())
+        {
+            rewardedAd.SetServerSideVerificationOptions(options);
+            rewardedAd.Show(reward =>
+            {
+                Debug.Log($"Rewarded ad granted reward: {reward.Amount} {reward.Type}");
+                isRewarded = true;
+            });
         }
         else
         {
-            rewardAdDict.Add(placement, rewardedAd);
+            result = AdFactory.RewardResult.Faild;
+            OnFinish?.Invoke(result);
+            yield break;
         }
 
-        AdRequest request = new AdRequest.Builder().Build();
-        rewardedAd.LoadAd(request);
-        return rewardedAd;
-    }
-
-    private void OnAdLoaded(object sender, EventArgs e)
-    {
-        MonoBehaviour.print("OnAdLoaded event received");
-    }
-
-    private void OnAdFailedToLoad(object sender, AdFailedToLoadEventArgs e)
-    {
-        MonoBehaviour.print("OnAdFailedToLoad event received ,msg : {e.Message}");
-        RemoveRewardAdByValue(sender as RewardedAd);
-    }
-
-    void RemoveRewardAdByValue(RewardedAd rewardedAd)
-    {
-        if (rewardedAd != null)
+        while (!isRewardAdClose)
         {
-            foreach (var item in rewardAdDict.Where(kvp => kvp.Value == rewardedAd).ToList())
-            {
-                rewardAdDict.Remove(item.Key);
-            }
+            yield return null;
         }
-    }
 
-    private void OnAdOpening(object sender, EventArgs e)
-    {
-        MonoBehaviour.print("OnAdOpening event received");
-    }
-
-    private void OnAdFailedToShow(object sender, AdErrorEventArgs e)
-    {
-        MonoBehaviour.print($"OnAdFailedToShow event received ,msg : {e.Message}");
-    }
-
-    private void OnUserEarnedReward(object sender, Reward e)
-    {
-        MonoBehaviour.print("OnUserEarnedReward event received");
-        isRewarded = true;
-    }
-
-    private void OnAdClosed(object sender, EventArgs e)
-    {
-        MonoBehaviour.print("OnAdClosed event received");
-        isRewardAdClose = true;
+        result = isRewarded ? AdFactory.RewardResult.Success : AdFactory.RewardResult.Declined;
+        OnFinish?.Invoke(result);
     }
 
     static GoogleMobileAds.Api.ServerSideVerificationOptions options;
     public static void SetCustomData(GoogleMobileAds.Api.ServerSideVerificationOptions _options)
     {
         options = _options;
-    }
-
-    bool isRewardAdClose = false;
-    bool isRewarded = false;
-    public IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> OnFinish)
-    {
-        AdFactory.RewardResult result = AdFactory.RewardResult.Error;
-        int try_preload_times = 0;
-        isRewardAdClose = false;
-        isRewarded = false;
-
-        if (string.IsNullOrEmpty(placement))
-        {
-            placement = _defaultRewaredPlacement;
-        }
-
-        rewardAdDict.TryGetValue(placement, out RewardedAd rewardedAd);
-
-        if (rewardedAd == null)
-        {
-            rewardedAd = CreateAndLoadRewardedAd(placement);
-        }
-
-        yield return new WaitForSecondsRealtime(0.2f);
-
-        //沒有讀到的情況
-        if (!rewardedAd.IsLoaded())
-        {
-            while (try_preload_times < 3)
-            {
-                float wait = 0;
-                while (wait < 1.5f)
-                {
-                    wait += Time.deltaTime;
-                    if (rewardedAd.IsLoaded())
-                    {
-                        goto SHOW;
-                    }
-                    yield return null;
-                }
-                try_preload_times++;
-                Debug.Log("Try load times : " + try_preload_times);
-            }
-            result = AdFactory.RewardResult.Faild;
-            goto FINISH;
-        }
-
-    SHOW:
-        if (rewardedAd.IsLoaded())
-        {
-            rewardedAd.SetServerSideVerificationOptions(options);
-            rewardedAd.Show();
-        }
-        else
-        {
-            result = AdFactory.RewardResult.Faild;
-            goto FINISH;
-        }
-
-        while (isRewardAdClose == false)
-        {
-            yield return null;
-        }
-
-        if (isRewarded)
-        {
-            result = AdFactory.RewardResult.Success;
-        }
-        else
-        {
-            result = AdFactory.RewardResult.Declined;
-        }
-
-        //Unbind Event
-        rewardedAd.OnAdLoaded -= OnAdLoaded;
-        rewardedAd.OnAdFailedToLoad -= OnAdFailedToLoad;
-        rewardedAd.OnAdOpening -= OnAdOpening;
-        rewardedAd.OnAdFailedToShow -= OnAdFailedToShow;
-        rewardedAd.OnUserEarnedReward -= OnUserEarnedReward;
-        rewardedAd.OnAdClosed -= OnAdClosed;
-        CreateAndLoadRewardedAd(placement);
-
-    FINISH:
-        OnFinish?.Invoke(result);
     }
 
     public void PreLoadRewardedAd(string[] placements)
@@ -434,11 +342,5 @@ public class AdMobManager : IAdManager
         }
     }
 
-    public bool LoadBannerAd()
-    {
-        return false;
-    }
-
     #endregion
 }
-

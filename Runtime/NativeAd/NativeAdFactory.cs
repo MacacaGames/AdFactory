@@ -1,4 +1,3 @@
-#if AdFactory_Admob_Native
 using System.Collections;
 using System.Collections.Generic;
 using GoogleMobileAds.Api;
@@ -41,4 +40,3 @@ public interface INativeAdManager
     void LoadNativeAd(string AD_UNIT);
     void Destroy();
 }
-#endif
