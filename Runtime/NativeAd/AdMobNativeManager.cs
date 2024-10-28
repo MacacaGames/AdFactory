@@ -1,3 +1,4 @@
+#if AdFactory_Admob_Native
 using System;
 using System.Collections.Generic;
 using GoogleMobileAds.Api;
@@ -67,3 +68,4 @@ public class AdMobNativeManager
         nativeAd?.Destroy();
     }
 }
+#endif
