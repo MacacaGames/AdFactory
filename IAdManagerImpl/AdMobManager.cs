@@ -175,7 +175,10 @@ public class AdMobManager : IAdManager
     private void RegisterInterstitialEvents(InterstitialAd ad)
     {
         ad.OnAdPaid += (AdValue adValue) =>
+        {
+            // AnalyticsManager.LogAdsRevenue("AdMob", ad.GetAdUnitID(), "Interstitial", adValue);
             Debug.Log($"Interstitial ad paid {adValue.Value} {adValue.CurrencyCode}");
+        };
         ad.OnAdClicked += () =>
             Debug.Log("Interstitial ad clicked.");
         ad.OnAdImpressionRecorded += () =>
@@ -232,9 +235,8 @@ public class AdMobManager : IAdManager
     {
         RewardedAd loadRewardedAd = null;
 
-        if (rewardAdDict.TryGetValue(placement, out RewardedAd existingAd))
+        if (rewardAdDict.TryGetValue(placement, out var existingAd))
         {
-            UnregisterRewardedAdEvents(existingAd);
             rewardAdDict.Remove(placement);
         }
 
@@ -256,45 +258,22 @@ public class AdMobManager : IAdManager
 
     private void RegisterRewardedAdEvents(RewardedAd ad)
     {
-        ad.OnAdPaid += HandleOnAdPaid;
-        ad.OnAdClicked += HandleOnAdClicked;
-        ad.OnAdFullScreenContentOpened += HandleOnAdOpened;
-        ad.OnAdFullScreenContentClosed += HandleOnAdClosed;
-        ad.OnAdFullScreenContentFailed += HandleOnAdFailedToShow;
-    }
-
-    private void UnregisterRewardedAdEvents(RewardedAd ad)
-    {
-        ad.OnAdPaid -= HandleOnAdPaid;
-        ad.OnAdClicked -= HandleOnAdClicked;
-        ad.OnAdFullScreenContentOpened -= HandleOnAdOpened;
-        ad.OnAdFullScreenContentClosed -= HandleOnAdClosed;
-        ad.OnAdFullScreenContentFailed -= HandleOnAdFailedToShow;
-    }
-
-    private void HandleOnAdPaid(AdValue adValue)
-    {
-    }
-
-    private void HandleOnAdClicked()
-    {
-        Debug.Log("Rewarded ad clicked.");
-    }
-
-    private void HandleOnAdOpened()
-    {
-        Debug.Log("Rewarded ad full screen content opened.");
-    }
-
-    private void HandleOnAdClosed()
-    {
-        Debug.Log("Rewarded ad closed.");
-        isRewardAdClose = true;
-    }
-
-    private void HandleOnAdFailedToShow(AdError error)
-    {
-        Debug.LogError("Rewarded ad failed to show with error: " + error);
+        ad.OnAdPaid += (AdValue adValue) =>
+        {
+            // AnalyticsManager.LogAdsRevenue("AdMob", ad.GetAdUnitID(), "Rewarded", adValue);
+            Debug.Log($"Rewarded ad paid {adValue.Value} {adValue.CurrencyCode}");
+        };
+        ad.OnAdClicked += () => Debug.Log("Rewarded ad clicked.");
+        ad.OnAdFullScreenContentOpened += () => Debug.Log("Rewarded ad full screen content opened.");
+        ad.OnAdFullScreenContentClosed += () =>
+        {
+            Debug.Log("Rewarded ad closed.");
+            isRewardAdClose = true;
+        };
+        ad.OnAdFullScreenContentFailed += (AdError error) =>
+        {
+            Debug.LogError("Rewarded ad failed to show with error: " + error);
+        };
     }
 
     public IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> OnFinish)
@@ -344,3 +323,4 @@ public class AdMobManager : IAdManager
 
     #endregion
 }
+
