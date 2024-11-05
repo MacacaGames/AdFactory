@@ -1,4 +1,4 @@
-#if AdFactory_Admob_Native
+#if AdFactory_Native
 using System.Collections;
 using System.Collections.Generic;
 using GoogleMobileAds.Api;
