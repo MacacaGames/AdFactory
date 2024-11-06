@@ -122,7 +122,7 @@ public class AdFactory : MonoBehaviour
         fallbackAdManager.Init();
     }
 
-    public void PreLoadRewardedAd(string[] placements, AdManagerType adManagerType = AdManagerType.Main)
+    public void PreLoadRewardedAd(string placements, AdManagerType adManagerType = AdManagerType.Main)
     {
 
 
@@ -339,10 +339,10 @@ public class AdFactory : MonoBehaviour
         if (CheckInit() && IsInternetAvaliable)
         {
             var currentAdManager = mainAdManager;
-            if (!mainAdManager.IsRewardViedoAvaliable(placement, null) &&
+            if (!mainAdManager.IsRewardViedoAvaliable(placement) &&
                 fallbackAdManager != null &&
                 fallbackHandle == FallbackHandle.AlwaysFallbackIfPossiable&&
-                fallbackAdManager.IsRewardViedoAvaliable(placement, null))
+                fallbackAdManager.IsRewardViedoAvaliable(placement))
             {
                 currentAdManager = fallbackAdManager;
                 // preload the ads for the next show
@@ -381,13 +381,13 @@ public class AdFactory : MonoBehaviour
         return IsRewardViedoAvaliableDirectResult;
 #else
         var currentAdManager = mainAdManager;
-        if (!mainAdManager.IsRewardViedoAvaliable(placement, null) &&
+        if (!mainAdManager.IsRewardViedoAvaliable(placement) &&
             fallbackAdManager != null &&
             adManagerType == AdManagerType.Fallback)
         {
             currentAdManager = fallbackAdManager;
         }
-        return currentAdManager.IsRewardViedoAvaliable(placement, OnAdLoaded);
+        return currentAdManager.IsRewardViedoAvaliable(placement);
 #endif
     }
     IEnumerator EditorIsRewardVideoAvaliabale(System.Action<bool> OnAdLoaded)
@@ -479,7 +479,7 @@ public interface IAdManager
     /// <returns>一個代表廣告顯示進程的 Coroutine</returns>
     IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> OnFinish);
 
-    void PreLoadRewardedAd(string[] placements);
-    bool IsRewardViedoAvaliable(string placement, System.Action<bool> OnAdLoaded);
+    void PreLoadRewardedAd(string placements);
+    bool IsRewardViedoAvaliable(string placement);
 }
 

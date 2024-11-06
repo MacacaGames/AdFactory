@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using GoogleMobileAds.Api;
 using UnityEngine;
 
@@ -97,7 +96,10 @@ public class AdMobManager : IAdManager
 
     public IEnumerator ShowInterstitialAds(string placement, Action<AdFactory.RewardResult> callback)
     {
-        string id = _defaultIterstitialPlacement;
+        if (string.IsNullOrEmpty(placement))
+        {
+            placement = _defaultIterstitialPlacement;
+        }
         AdFactory.RewardResult result = AdFactory.RewardResult.Error;
         isInterstitialAdClose = false;
         int try_preload_times = 0;
@@ -108,7 +110,7 @@ public class AdMobManager : IAdManager
         {
             while (try_preload_times < 2)
             {
-                PreloadInterstitial(id);
+                PreloadInterstitial(placement);
 
                 float wait = 0;
                 while (wait < 2)
@@ -141,7 +143,7 @@ public class AdMobManager : IAdManager
         }
 
         FINISH:
-        PreloadInterstitial(id);
+        PreloadInterstitial(placement);
         callback?.Invoke(result);
     }
     public void PreLoadInterstitialAds(string placements)
@@ -206,118 +208,122 @@ public class AdMobManager : IAdManager
 
     #region RewardedAd
 
-    static Dictionary<string, RewardedAd> rewardAdDict = new Dictionary<string, RewardedAd>();
-    public bool IsRewardViedoAvaliable(string placement, System.Action<bool> OnAdLoaded)
-    {
-        if (!AdFactory.IsInternetAvaliable)
-        {
-            OnAdLoaded?.Invoke(false);
-            return false;
-        }
+    public AdFactory.AdsLoadState loadState_rewardedAds = AdFactory.AdsLoadState.Exception;
+    bool isRewardedAdClose = false;
+    private RewardedAd rewardedAd;
+    bool isShowedRewardedAds;
 
+    public IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> callback)
+    {
         if (string.IsNullOrEmpty(placement))
         {
-            placement = _defaultRewaredPlacement;
+            placement = _defaultIterstitialPlacement;
         }
+        AdFactory.RewardResult result = AdFactory.RewardResult.Error;
+        isRewardedAdClose = false;
+        int try_preload_times = 0;
 
-        if (!rewardAdDict.TryGetValue(placement, out RewardedAd rewardedAd))
+        yield return new WaitForSecondsRealtime(1f);
+
+        if (loadState_rewardedAds != AdFactory.AdsLoadState.Loaded)
         {
-            rewardedAd = CreateAndLoadRewardedAd(placement);
+            while (try_preload_times < 2)
+            {
+                PreloadRewarded(placement);
+
+                float wait = 0;
+                while (wait < 2)
+                {
+                    wait += Time.deltaTime;
+                    if (loadState_rewardedAds == AdFactory.AdsLoadState.Loaded)
+                    {
+                        goto SHOW;
+                    }
+                    yield return null;
+                }
+                try_preload_times++;
+                Debug.Log("Try load times : " + try_preload_times);
+            }
+            result = AdFactory.RewardResult.Faild;
+            goto FINISH;
         }
 
-        return rewardedAd.CanShowAd();
+        SHOW:
+        if (rewardedAd != null && rewardedAd.CanShowAd())
+        {
+            result = AdFactory.RewardResult.Success;
+            rewardedAd.Show(reward =>
+            {
+                Debug.Log($"Rewarded ad granted reward: {reward.Amount} {reward.Type}");
+            });
+            isShowedRewardedAds = true;
+        }
+
+        while (!isRewardedAdClose)
+        {
+            yield return null;
+        }
+
+        FINISH:
+        PreloadRewarded(placement);
+        callback?.Invoke(result);
     }
 
-    bool isRewardAdClose = false;
-    bool isRewarded = false;
-
-    public RewardedAd CreateAndLoadRewardedAd(string placement)
+    public void PreLoadRewardedAd(string placements)
     {
-        RewardedAd loadRewardedAd = null;
+        PreloadRewarded(placements);
+    }
+    public bool IsRewardViedoAvaliable(string placement)
+    {
+        return rewardedAd != null && rewardedAd.CanShowAd();
+    }
 
-        if (rewardAdDict.TryGetValue(placement, out var existingAd))
-        {
-            rewardAdDict.Remove(placement);
-        }
+    void PreloadRewarded(string id)
+    {
+        DestroyRewarded();
 
-        RewardedAd.Load(placement, new AdRequest(), (RewardedAd ad, LoadAdError error) =>
+        RewardedAd.Load(id, new AdRequest(), (RewardedAd ad, LoadAdError error) =>
         {
             if (error != null)
             {
-                Debug.LogError("Rewarded ad failed to load with error: " + error);
+                Debug.LogError("Rewarded ad failed to load: " + error);
+                loadState_rewardedAds = AdFactory.AdsLoadState.Failed;
                 return;
             }
 
-            rewardAdDict[placement] = ad;
-            RegisterRewardedAdEvents(ad);
-            loadRewardedAd = ad;
+            rewardedAd = ad;
+            loadState_rewardedAds = AdFactory.AdsLoadState.Loaded;
+            RegisterRewardedEvents(ad);
         });
-
-        return loadRewardedAd;
     }
 
-    private void RegisterRewardedAdEvents(RewardedAd ad)
+    private void RegisterRewardedEvents(RewardedAd ad)
     {
         ad.OnAdPaid += (AdValue adValue) =>
         {
             // AnalyticsManager.LogAdsRevenue("AdMob", ad.GetAdUnitID(), "Rewarded", adValue);
             Debug.Log($"Rewarded ad paid {adValue.Value} {adValue.CurrencyCode}");
         };
-        ad.OnAdClicked += () => Debug.Log("Rewarded ad clicked.");
-        ad.OnAdFullScreenContentOpened += () => Debug.Log("Rewarded ad full screen content opened.");
+        ad.OnAdClicked += () =>
+            Debug.Log("Rewarded ad clicked.");
+        ad.OnAdImpressionRecorded += () =>
+            Debug.Log("Rewarded ad impression recorded.");
+        ad.OnAdFullScreenContentOpened += () =>
+            Debug.Log("Rewarded ad full screen content opened.");
         ad.OnAdFullScreenContentClosed += () =>
         {
-            Debug.Log("Rewarded ad closed.");
-            isRewardAdClose = true;
+            isRewardedAdClose = true; loadState_rewardedAds = AdFactory.AdsLoadState.Complete;
         };
         ad.OnAdFullScreenContentFailed += (AdError error) =>
-        {
-            Debug.LogError("Rewarded ad failed to show with error: " + error);
-        };
+            Debug.LogError("Rewarded ad failed to show: " + error);
     }
 
-    public IEnumerator ShowRewardedAds(string placement, Action<AdFactory.RewardResult> OnFinish)
+    void DestroyRewarded()
     {
-        AdFactory.RewardResult result = AdFactory.RewardResult.Error;
-        isRewardAdClose = false;
-        isRewarded = false;
-
-        if (rewardAdDict.TryGetValue(placement, out RewardedAd rewardedAd) && rewardedAd.CanShowAd())
+        if (rewardedAd != null)
         {
-            rewardedAd.SetServerSideVerificationOptions(options);
-            rewardedAd.Show(reward =>
-            {
-                Debug.Log($"Rewarded ad granted reward: {reward.Amount} {reward.Type}");
-                isRewarded = true;
-            });
-        }
-        else
-        {
-            result = AdFactory.RewardResult.Faild;
-            OnFinish?.Invoke(result);
-            yield break;
-        }
-
-        while (!isRewardAdClose)
-        {
-            yield return null;
-        }
-
-        result = isRewarded ? AdFactory.RewardResult.Success : AdFactory.RewardResult.Declined;
-        OnFinish?.Invoke(result);
-    }
-
-    static GoogleMobileAds.Api.ServerSideVerificationOptions options;
-    public static void SetCustomData(GoogleMobileAds.Api.ServerSideVerificationOptions _options)
-    {
-        options = _options;
-    }
-
-    public void PreLoadRewardedAd(string[] placements)
-    {
-        foreach (var item in placements)
-        {
-            CreateAndLoadRewardedAd(item);
+            rewardedAd.Destroy();
+            rewardedAd = null;
         }
     }
 
